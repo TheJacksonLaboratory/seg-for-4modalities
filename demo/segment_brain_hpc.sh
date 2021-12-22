@@ -10,4 +10,4 @@
 
 module load singularity
 
-singularity exec --nv msUNET/tensorflow2003.sif python3 msUNET/segment_brain.py -i test_dataset/ 
+singularity exec --nv ../msUNET/tensorflow2003.sif python3 ../msUNET/segment_brain.py -i ../test_dataset/ 
