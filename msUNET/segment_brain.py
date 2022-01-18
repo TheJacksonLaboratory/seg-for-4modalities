@@ -8,8 +8,10 @@ from predict.core.utils import low_snr_check
 from predict.core.utils import get_suffix
 from predict.core.utils import listdir_nohidden
 from predict.scripts.rbm import brain_seg_prediction
+from predict.core.quality import quality_check
 from predict.scripts.original_seg import brain_seg_prediction_original
 from pathlib import PurePath
+import joblib
 import shutil
 import SimpleITK as sitk
 import argparse
@@ -251,7 +253,7 @@ if opt.skip_preprocessing:
         brain_seg_prediction_original(opt.input_filename, output_filename, voxsize, pre_paras, keras_paras)
         exit()
 
-quality_check_list = []
+quality_check_list = pd.DataFrame(columns=['filename', 'slice_index', 'notes'])
 
 mouse_dirs = sorted(listdir_nohidden(opt.input))
 
@@ -308,16 +310,6 @@ for mouse_dir in mouse_dirs:
         source_image.SetSpacing(source_spacing)
         #source_image = sitk.Cast(source_image, sitk.sitk.UInt8)
         sitk.WriteImage(source_image, source_fn)
-
-        # Perform pre-inference quality checks
-        if opt.quality_checks:
-            # First check for low SNR.
-            # Catches instances in which the raw data appears to show that
-            # prediction may be challenging
-            snr_check = low_snr_check(
-                source_array, source_fn, opt.low_snr_threshold)
-
-            quality_check_list = quality_check_list + snr_check
 
         if opt.z_axis_correction == 'True':
             # Run z-axis correction, producing modified data
@@ -464,42 +456,15 @@ for mouse_dir in mouse_dirs:
         # Often overlap with each other and with low SNR. Can catch unique
         # cases though.
         if opt.quality_checks:
-            # Load in the mask
-            mask_img = sitk.ReadImage(mask_fn)
-            mask_array = sitk.GetArrayFromImage(mask_img)
+            print('Performing post-inference quality checks')
+            source_array = sitk.GetArrayFromImage(sitk.ReadImage(source_fn))
+            mask_array = sitk.GetArrayFromImage(sitk.ReadImage(mask_fn))
+            qc_classifier = joblib.load('./predict/scripts/quality_check_11822.joblib')
+            file_quality_check_df = quality_check(source_array, mask_array, qc_classifier, source_fn, mask_fn)
+            quality_check_list = quality_check_list.append(file_quality_check_df, ignore_index=True)
 
-            # First check for low and high mask area
-            # Can catch z-axis correction/normalization boosting noise to beyond detection threshold
-            # Also detects normalization issues in image-wide normalization
-            low_mask_area_check, high_mask_area_check = mask_area_check(
-                mask_array, source_fn, source_array)
-            quality_check_list = quality_check_list + \
-                low_mask_area_check + high_mask_area_check
+print(quality_check_list)
+if len(quality_check_list) > 0:
+    print('Saving quality check file to: ' + opt.input + 'quality_check.csv')
+    quality_check_list.to_csv(opt.input + '/quality_check.csv', index=False)
 
-            # Load in the likelihood map
-            likelihood_fn = mask_fn.split('.')[0] + '_likelihood.nii'
-            likelihood_img = sitk.ReadImage(likelihood_fn)
-            likelihood_array = sitk.GetArrayFromImage(likelihood_img)
-
-            # Then check for an unusually high percentage of intermediate likelihood pixels
-            # Generally this is indicative of poor predictive performance.
-            # Boundaries will not be sharp.
-            int_likelihood_check = intermediate_likelihood_check(
-                likelihood_array, source_fn, source_array)
-            quality_check_list = quality_check_list + int_likelihood_check
-
-            # Next check for high solidity
-            # Catches instances in which predicted brain regions are disconnected or shaped in a manner
-            # inconsistent with the shape of a mouse brain
-            solidity_check_list = solidity_check(
-                mask_array, source_fn, source_array)
-            quality_check_list = quality_check_list + solidity_check_list
-
-if quality_check_list:
-    print('The Following File/Slice Combinations Have Issues which Could Lead to Decreased Performance')
-    pprint.pprint(quality_check_list)
-
-    quality_check_file = open(opt.input + '/quality_check.txt', 'w')
-    for element in sorted(quality_check_list):
-        quality_check_file.write(element + '\n')
-    quality_check_file.close()
