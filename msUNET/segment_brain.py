@@ -198,6 +198,11 @@ parser.add_argument(
     default=0.25,
     required=False,
     type=float)
+parser.add_argument(
+    "-se",
+    "--qc_skip_edges",
+    default=False,
+    type=str2bool)
 
 opt = parser.parse_args()
 
@@ -460,7 +465,7 @@ for mouse_dir in mouse_dirs:
             source_array = sitk.GetArrayFromImage(sitk.ReadImage(source_fn))
             mask_array = sitk.GetArrayFromImage(sitk.ReadImage(mask_fn))
             qc_classifier = joblib.load('./predict/scripts/quality_check_11822.joblib')
-            file_quality_check_df = quality_check(source_array, mask_array, qc_classifier, source_fn, mask_fn)
+            file_quality_check_df = quality_check(source_array, mask_array, qc_classifier, source_fn, mask_fn, opt.qc_skip_edges)
             quality_check_list = quality_check_list.append(file_quality_check_df, ignore_index=True)
 
 print(quality_check_list)

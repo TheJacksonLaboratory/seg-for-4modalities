@@ -346,36 +346,57 @@ def connected_components_count(mask_array):
 	return no_connected_components
 
 
-def quality_check(source_array, mask_array,qc_classifier, source_fn, mask_fn):
+def quality_check(source_array, mask_array,qc_classifier, source_fn, mask_fn, skip_edges):
 	file_quality_check = pd.DataFrame(columns=['filename', 'slice_index', 'notes'])
 	for i in range(source_array.shape[0]):
+		if skip_edges == True:
+			if i == 0 or i == (source_array.shape[0] -1):
+				continue
 		current_data_slice = source_array[i,:,:]
 		current_mask_slice = mask_array[i,:,:]
 		slice_index = i + 1
 		notes = 'None'
-		no_connected_components = connected_components_count(current_mask_slice)
-		binary_edge_fraction, binary_edge_cc_count, chamfer_dist = edge_detection(current_data_slice, current_mask_slice)
-		otsu_snr, otsu_std, background_std, otsu_size_frac, foreground_mean_intensity, background_mean_intensity = otsu_snr_check(current_data_slice)
-		max_loc_horiz, max_loc_vert = intensity_location_check(current_data_slice)
-		roundness, elongation = geometry_check(current_data_slice, current_mask_slice)
-		current_mask_ratio, current_source_ratio = mask_area_check(current_mask_slice,current_data_slice)
-		basic_snr = low_snr_check(current_data_slice)
-		#resampled_data_pixel_list = resample_img_qc(sitk.GetImageFromArray(current_data_slice)).flatten()
-		#resampled_mask_pixel_list = resample_img_qc(sitk.GetImageFromArray(current_mask_slice),interpolator=sitk.sitkNearestNeighbor).flatten()
-		solidity = solidity_check(current_mask_slice)
-		hu_array = np.sign(np.array(hu(current_mask_slice)))*np.log(np.absolute(np.array(hu(current_mask_slice))))
+		try:
+			no_connected_components = connected_components_count(current_mask_slice)
+			binary_edge_fraction, binary_edge_cc_count, chamfer_dist = edge_detection(current_data_slice, current_mask_slice)
+			otsu_snr, otsu_std, background_std, otsu_size_frac, foreground_mean_intensity, background_mean_intensity = otsu_snr_check(current_data_slice)
+			max_loc_horiz, max_loc_vert = intensity_location_check(current_data_slice)
+			roundness, elongation = geometry_check(current_data_slice, current_mask_slice)
+			current_mask_ratio, current_source_ratio = mask_area_check(current_mask_slice,current_data_slice)
+			basic_snr = low_snr_check(current_data_slice)
+			#resampled_data_pixel_list = resample_img_qc(sitk.GetImageFromArray(current_data_slice)).flatten()
+			#resampled_mask_pixel_list = resample_img_qc(sitk.GetImageFromArray(current_mask_slice),interpolator=sitk.sitkNearestNeighbor).flatten()
+			solidity = solidity_check(current_mask_slice)
+			hu_array = np.sign(np.array(hu(current_mask_slice)))*np.log(np.absolute(np.array(hu(current_mask_slice))))
+		except:
+			notes = 'Feature Calculation Failure'
+			prediction = False
 
-		feature_array = np.array([current_mask_ratio, no_connected_components, slice_index,
-						 otsu_snr, otsu_std, binary_edge_fraction, binary_edge_cc_count,
-						 chamfer_dist, max_loc_horiz, max_loc_vert, otsu_size_frac,
-						 roundness, elongation]).reshape(1,-1)
+		try:
+			#TODO: implement bespoke solution for problem with missing brain tissue near bottom of brain
+			#BLOCK
+			lower_region_check = True
+			if lower_region_check == False:
+				notes = 'Potential missing tissue - lower region'
+				prediction = False
+		except:
+			notes = 'Lower region bespoke calculation failed'
+			prediction = False
 
-		prediction = (qc_classifier.predict_proba(feature_array)[:,1] >= 0.70).astype(bool)
-		print(feature_array)
+		if notes == 'None':
+			feature_array = np.array([current_mask_ratio, no_connected_components, slice_index,
+						 			otsu_snr, otsu_std, binary_edge_fraction, binary_edge_cc_count,
+						 			chamfer_dist, max_loc_horiz, max_loc_vert, otsu_size_frac,
+							 		roundness, elongation]).reshape(1,-1)
+			prediction = (qc_classifier.predict_proba(feature_array)[:,1] >= 0.70).astype(bool)
+			print(feature_array)
+			if prediction == False:
+				notes = 'Model Classified'
+		
 		print(prediction)
 
 		if prediction == False:
-			slice_df = {'filename': str(source_fn), 'slice_index': str(slice_index)}
+			slice_df = {'filename': str(source_fn), 'slice_index': str(slice_index), 'notes': str(notes)}
 			print(slice_df)
 			file_quality_check = file_quality_check.append(slice_df, ignore_index=True)
 
