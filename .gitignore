@@ -1,2 +1,10 @@
 .*
 !/.gitignore
+*.sif
+*.tar
+*.gz
+*.nii
+*.pyc
+*.pyc
+msUNET/predict/core/__pycache__/utils.cpython-38.pyc
+*.pyc

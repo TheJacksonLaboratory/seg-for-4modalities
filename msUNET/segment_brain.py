@@ -8,6 +8,8 @@ from predict.core.utils import low_snr_check
 from predict.core.utils import get_suffix
 from predict.core.utils import listdir_nohidden
 from predict.scripts.rbm import brain_seg_prediction
+from predict.scripts.original_seg import brain_seg_prediction_original
+from pathlib import PurePath
 import shutil
 import SimpleITK as sitk
 import argparse
@@ -58,13 +60,25 @@ parser.add_argument(
     "--input",
     help="Directory containing specified file structure",
     type=str,
-    required=True)
+    required=False)
 parser.add_argument(
     "-m",
     "--model",
     help="Filename of the model to be used in inference",
     type=str,
     default='model156_0.50.25_scan.hdf5')
+parser.add_argument(
+    "-sp",
+    "--skip_preprocessing",
+    help="Skip all preprocessing steps and use original segmentation algorithm",
+    type=str2bool,
+    default=False)
+parser.add_argument(
+    "-if",
+    "--input_filename",
+    help="Input filename of single file to run inference on",
+    type=str,
+    default=None)
 parser.add_argument(
     "-th",
     "--threshold",
@@ -108,7 +122,7 @@ parser.add_argument(
     default=[
         0.08,
         0.08,
-         0.76])  # usually 0.08,0.08,0.76
+         1])  # usually 0.08,0.08,0.76
 parser.add_argument(
     "-ip",
     "--image_patch",
@@ -120,7 +134,7 @@ parser.add_argument(
     "--image_stride",
     help="Stride of the image patching method to use in inference. Best to use the stride corresponding to that used in training",
     type=int,
-    default=32)
+    default=16)
 parser.add_argument(
     "-qc",
     "--quality_checks",
@@ -138,7 +152,7 @@ parser.add_argument(
     "--normalization_mode",
     help="Use either by_slice or by_image to normalize images pre-inference",
     type=str,
-    default="by_slice",
+    default="by_img",
     choices=[
         'by_slice',
          'by_img'])
@@ -151,15 +165,15 @@ parser.add_argument(
 parser.add_argument(
     "-cs",
     "--constant_size",
-    default=True,
+    default=False,
     required=False,
     type=str2bool)
 parser.add_argument(
     "-ts",
     "--target_size",
     default=[
-        192,
-        192,
+        280,
+        280,
         None],
     nargs="*",
     type=int,
@@ -222,11 +236,20 @@ keras_paras.outID = 0
 keras_paras.thd = opt.threshold
 keras_paras.loss = 'dice_coef_loss'
 keras_paras.img_format = opt.channel_location
-keras_paras.model_path = './msUNET/predict/scripts/' + opt.model
+keras_paras.model_path = './predict/scripts/' + opt.model
 
 # Declare input variables that generally remain constant in the instance
 # of constant input type
 voxsize = 0.1
+
+if opt.skip_preprocessing:
+    print('Skipping all preprocessing steps...')
+    if opt.input_filename is not None:
+        input_path_obj = PurePath(opt.input_filename)
+        output_filename  = str(input_path_obj.with_name(input_path_obj.stem.split('.')[0] + '_mask' + ''.join(input_path_obj.suffixes)))
+        print(output_filename)
+        brain_seg_prediction_original(opt.input_filename, output_filename, voxsize, pre_paras, keras_paras)
+        exit()
 
 quality_check_list = []
 
@@ -254,7 +277,9 @@ for mouse_dir in mouse_dirs:
         # print(suffix)
 
         # Write a copy of the source image to original_fn_original.nii
-        original_fn = source_fn.split('.')[0] + '_backup.nii'
+        source_path_obj = PurePath(source_fn)
+        original_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + '_backup' + ''.join(source_path_obj.suffixes)))
+        #original_fn = Path(source_fn).stem.split('.')[0] + '_backup.nii'
         shutil.copyfile(source_fn, original_fn)
 
         # Do some very basic data preparation
@@ -296,7 +321,9 @@ for mouse_dir in mouse_dirs:
 
         if opt.z_axis_correction == 'True':
             # Run z-axis correction, producing modified data
-            z_axis_fn = source_fn.split('.')[0] + '_z_axis.nii'
+            z_axis_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + '_z_axis' + ''.join(source_path_obj.suffixes)))
+            z_axis_path_obj = PurePath(z_axis_fn)
+            #z_axis_fn = Path(source_fn).stem.split('.')[0] + '_z_axis.nii'
             # print(z_axis_fn)
             print('Performing z-axis correction')
             if not opt.use_frac_patch:
@@ -346,7 +373,8 @@ for mouse_dir in mouse_dirs:
         if opt.y_axis_correction == 'True':
             # Run y-axis correction, producing modified data
             print('Performing y-axis correction to source data')
-            y_axis_fn = source_fn.split('.')[0] + '_n4b.nii'
+            y_axis_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + '_n4b' + ''.join(source_path_obj.suffixes)))
+            #y_axis_fn = Path(source_fn).stem.split('.')[0] + '_n4b.nii'
             # print(y_axis_fn)
             y_axis_correction(
                 source_fn,
@@ -362,7 +390,8 @@ for mouse_dir in mouse_dirs:
                 # If we have already done a z-axis correction, do a y axis correction on that file too.
                 # The file created with n4b alone is simply intended to be a
                 # check
-                z_axis_n4b_fn = z_axis_fn.split('.')[0] + '_n4b.nii'
+                z_axis_n4b_fn = str(z_axis_path_obj.with_name(z_axis_path_obj.stem.split('.')[0] + '_n4b' + ''.join(z_axis_path_obj.suffixes)))
+                #z_axis_n4b_fn = Path(z_axis_fn).stem.split('.')[0] + '_n4b.nii'
                 # print(z_axis_n4b_fn)
                 y_axis_correction(
                     z_axis_fn,
@@ -374,9 +403,11 @@ for mouse_dir in mouse_dirs:
                     opt.y_axis_mask)
 
         # Do the final inference
-        final_inference_fn = source_fn.split('.')[0] + suffix + '.nii'
+        final_inference_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + suffix + ''.join(source_path_obj.suffixes)))
+        #final_inference_fn = Path(source_fn).stem.split('.')[0] + suffix + '.nii'
         # print(final_inference_fn)
-        mask_fn = source_fn.split('.')[0] + '_mask.nii'
+        mask_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + '_mask' + ''.join(source_path_obj.suffixes)))
+        #mask_fn = Path(source_fn).stem.split('.')[0] + '_mask.nii'
         # print(final_inference_fn)
         if not opt.use_frac_patch:
             if not opt.constant_size:
