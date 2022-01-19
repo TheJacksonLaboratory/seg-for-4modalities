@@ -86,7 +86,7 @@ parser.add_argument(
     "--threshold",
     help="Score threshold for selecting brain region",
     type=float,
-    default=0.5)
+    default=0)
 parser.add_argument(
     "-cl",
     "--channel_location",

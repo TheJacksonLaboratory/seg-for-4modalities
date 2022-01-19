@@ -8,3 +8,4 @@
 *.pyc
 msUNET/predict/core/__pycache__/utils.cpython-38.pyc
 *.pyc
+msUNET/priority_1_sqc_full_pull/quality_check.csv

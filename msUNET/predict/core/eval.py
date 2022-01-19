@@ -36,10 +36,21 @@ def out_LabelHot_map_2D(
     counter_map = np.zeros((length, col, row), dtype=np.float32)
     length_step = int(patch_dims[0] / 2)
 
-    """-----predict the whole image from two directions, small to large and large to small----"""
-    for i in range(0, length - patch_dims[0] + 1, strides[0]):
-        for j in range(0, col - patch_dims[1] + 1, strides[1]):
-            for k in range(0, row - patch_dims[2] + 1, strides[2]):
+    slice_range_forward = list(range(0, length - patch_dims[0] + 1, strides[0]))
+    col_range_forward = list(range(0, col - patch_dims[1] + 1, strides[1]))
+    col_range_forward.append(col_range_forward[-1]+(col-(patch_dims[1]+(len(col_range_forward)-1)*strides[1])))
+    row_range_forward = list(range(0, row - patch_dims[2] + 1, strides[2]))
+    row_range_forward.append(row_range_forward[-1]+(col-(patch_dims[2]+(len(row_range_forward)-1)*strides[2])))
+
+    slice_range_backward = list(range(length, patch_dims[0] - 1, -strides[0]))
+    col_range_backward = list(range(col, patch_dims[1] - 1, -strides[1]))
+    col_range_backward.append(col_range_backward[-1]-(col-(patch_dims[1]+(len(col_range_backward)-1)*strides[1])))
+    row_range_backward = list(range(row, patch_dims[2] - 1, -strides[2]))
+    row_range_backward.append(row_range_backward[-1]-(col-(patch_dims[2]+(len(row_range_backward)-1)*strides[2])))
+
+    for i in slice_range_forward:
+        for j in col_range_forward:
+            for k in row_range_forward:
                 cur_patch = img[i:i + patch_dims[0],
                                 j:j + patch_dims[1],
                                 k:k + patch_dims[2]][:].reshape([1,
@@ -80,10 +91,10 @@ def out_LabelHot_map_2D(
                             j:j + label_dims[1],
                             k:k + label_dims[2]] += 1
 
-    for i in range(length, patch_dims[0] - 1, -strides[0]):
-        for j in range(col, patch_dims[1] - 1, -strides[1]):
-            for k in range(row, patch_dims[2] - 1, -strides[2]):
-
+    for i in slice_range_backward:
+        for j in col_range_backward:
+            for k in row_range_backward:
+                print(i, j, k)
                 cur_patch = img[i - patch_dims[0]:i,
                                 j - patch_dims[1]:j,
                                 k - patch_dims[2]:k][:].reshape([1,
