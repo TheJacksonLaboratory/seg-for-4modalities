@@ -11,7 +11,7 @@ import argparse
 
 
 def brain_seg_prediction_original(input_path, output_path, voxsize,
-                         pre_paras, keras_paras):
+                         pre_paras, keras_paras, likelihood_categorization):
     # load model
     seg_net = load_model(keras_paras.model_path,
                          custom_objects={'dice_coef_loss': dice_coef_loss,
@@ -37,7 +37,8 @@ def brain_seg_prediction_original(input_path, output_path, voxsize,
     out_label_map, out_likelihood_map = out_LabelHot_map_2D(normed_array,
                                                             seg_net,
                                                             pre_paras,
-                                                            keras_paras)
+                                                            keras_paras,
+                                                            likelihood_categorization=likelihood_categorization)
 
     out_label_img = sitk.GetImageFromArray(out_label_map.astype(np.uint8))
     out_label_img.CopyInformation(resampled_imgobj)

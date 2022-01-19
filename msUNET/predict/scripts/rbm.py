@@ -20,7 +20,8 @@ def brain_seg_prediction(
         normalization_mode,
         target_size=None,
         frac_patch=None,
-        frac_stride=None):
+        frac_stride=None,
+        likelihood_categorization=False):
     # Function serving as an intermediatry between overall inference handler
     # and inference calculations themselves
 
@@ -50,14 +51,16 @@ def brain_seg_prediction(
         out_label_map, out_likelihood_map = out_LabelHot_map_2D(normed_array,
                                                                 seg_net,
                                                                 pre_paras,
-                                                                keras_paras)
+                                                                keras_paras,
+                                                                likelihood_categorization=likelihood_categorization)
     if frac_patch is not None:
         out_label_map, out_likelihood_map = out_LabelHot_map_2D(normed_array,
                                                                 seg_net,
                                                                 pre_paras,
                                                                 keras_paras,
                                                                 frac_patch,
-                                                                frac_stride)
+                                                                frac_stride,
+                                                                likelihood_categorization=likelihood_categorization)
 
     out_label_img = sitk.GetImageFromArray(out_label_map.astype(np.uint8))
     out_likelihood_img = sitk.GetImageFromArray(
@@ -76,6 +79,15 @@ def brain_seg_prediction(
         target_size=imgobj.GetSize(),
         interpolator=sitk.sitkNearestNeighbor,
         revert=True)
+    # Save non-resampled results
+    sitk.WriteImage(
+        out_label_img,
+        output_path.split('.nii')[0] +
+        '_downsampled_mask.nii')
+    sitk.WriteImage(
+        out_likelihood_img,
+        output_path.split('.nii')[0] +
+        '_downsampled_likelihood.nii')
     # Save the results
     sitk.WriteImage(resampled_label_map, output_path)
     sitk.WriteImage(

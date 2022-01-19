@@ -1,3 +1,4 @@
+import SimpleITK as sitk
 import numpy as np
 from .utils import dim_2_categorical
 
@@ -8,7 +9,8 @@ def out_LabelHot_map_2D(
         pre_paras,
         keras_paras,
         frac_patch=None,
-        frac_stride=None):
+        frac_stride=None,
+        likelihood_categorization=False):
     # Function that serves to perform inference using a previously loaded model on image patches generated
     # by cutting up a previously loaded SimpleITK image
     # reset the variables
@@ -68,8 +70,9 @@ def out_LabelHot_map_2D(
                     cur_patch_output = cur_patch_output[keras_paras.outID]
                 cur_patch_output = np.squeeze(cur_patch_output)
                 cur_patch_out_label = cur_patch_output.copy()
-                cur_patch_out_label[cur_patch_out_label >= keras_paras.thd] = 1
-                cur_patch_out_label[cur_patch_out_label < keras_paras.thd] = 0
+                cur_patch_out_label = np.where(cur_patch_output > keras_paras.thd, 1, 0)
+                #cur_patch_out_label[cur_patch_out_label >= keras_paras.thd] = 1
+                #cur_patch_out_label[cur_patch_out_label < keras_paras.thd] = 0
 
                 middle = i + length_step
                 cur_patch_out_label = dim_2_categorical(
@@ -94,7 +97,6 @@ def out_LabelHot_map_2D(
     for i in slice_range_backward:
         for j in col_range_backward:
             for k in row_range_backward:
-                print(i, j, k)
                 cur_patch = img[i - patch_dims[0]:i,
                                 j - patch_dims[1]:j,
                                 k - patch_dims[2]:k][:].reshape([1,
@@ -112,8 +114,9 @@ def out_LabelHot_map_2D(
                 cur_patch_output = np.squeeze(cur_patch_output)
 
                 cur_patch_out_label = cur_patch_output.copy()
-                cur_patch_out_label[cur_patch_out_label >= keras_paras.thd] = 1
-                cur_patch_out_label[cur_patch_out_label < keras_paras.thd] = 0
+                cur_patch_out_label = np.where(cur_patch_output > keras_paras.thd, 1, 0)
+                #cur_patch_out_label[cur_patch_out_label >= keras_paras.thd] = 1
+                #cur_patch_out_label[cur_patch_out_label < keras_paras.thd] = 0
 
                 middle = i - patch_dims[0] + length_step
                 cur_patch_out_label = dim_2_categorical(
@@ -132,12 +135,18 @@ def out_LabelHot_map_2D(
                                                                      k - label_dims[2]:k] + cur_patch_output
                 counter_map[middle, j - label_dims[1]                            :j, k - label_dims[2]:k] += 1
 
-    label_map = np.zeros([length, col, row], dtype=np.uint8)
-    for idx in range(0, length):
-        cur_slice_label = np.squeeze(categorical_map[:, idx, ].argmax(axis=0))
-        label_map[idx, ] = cur_slice_label
+    if likelihood_categorization == False:
+        label_map = np.zeros([length, col, row], dtype=np.uint8)
+        for idx in range(0, length):
+            cur_slice_label = np.squeeze(categorical_map[:, idx, ].argmax(axis=0))
+            label_map[idx, ] = cur_slice_label
 
-    counter_map = np.maximum(counter_map, 10e-10)
-    likelihood_map = np.divide(likelihood_map, counter_map)
+        counter_map = np.maximum(counter_map, 10e-10)
+        likelihood_map = np.divide(likelihood_map, counter_map)
+    if likelihood_categorization == True:
+        likelihood_map = np.divide(likelihood_map, counter_map)
+        label_map = np.where(likelihood_map > keras_paras.thd, 1, 0)
+        print(np.amax(likelihood_map))
+        print(np.mean(likelihood_map))
 
     return label_map, likelihood_map

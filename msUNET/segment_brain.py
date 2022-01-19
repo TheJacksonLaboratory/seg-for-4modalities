@@ -86,7 +86,7 @@ parser.add_argument(
     "--threshold",
     help="Score threshold for selecting brain region",
     type=float,
-    default=0)
+    default=0.5)
 parser.add_argument(
     "-cl",
     "--channel_location",
@@ -136,7 +136,7 @@ parser.add_argument(
     "--image_stride",
     help="Stride of the image patching method to use in inference. Best to use the stride corresponding to that used in training",
     type=int,
-    default=16)
+    default=6)
 parser.add_argument(
     "-qc",
     "--quality_checks",
@@ -203,6 +203,11 @@ parser.add_argument(
     "--qc_skip_edges",
     default=False,
     type=str2bool)
+parser.add_argument(
+    "-lc",
+    "--likelihood_categorization",
+    default=False,
+    type=str2bool)
 
 opt = parser.parse_args()
 
@@ -255,7 +260,7 @@ if opt.skip_preprocessing:
         input_path_obj = PurePath(opt.input_filename)
         output_filename  = str(input_path_obj.with_name(input_path_obj.stem.split('.')[0] + '_mask' + ''.join(input_path_obj.suffixes)))
         print(output_filename)
-        brain_seg_prediction_original(opt.input_filename, output_filename, voxsize, pre_paras, keras_paras)
+        brain_seg_prediction_original(opt.input_filename, output_filename, voxsize, pre_paras, keras_paras, opt.likelihood_categorization)
         exit()
 
 quality_check_list = pd.DataFrame(columns=['filename', 'slice_index', 'notes'])
@@ -415,7 +420,8 @@ for mouse_dir in mouse_dirs:
                     pre_paras,
                     keras_paras,
                     opt.new_spacing,
-                    opt.normalization_mode)
+                    opt.normalization_mode,
+                    likelihood_categorization=opt.likelihood_categorization)
             elif opt.constant_size:
                 opt.new_spacing = None
                 brain_seg_prediction(
@@ -426,7 +432,8 @@ for mouse_dir in mouse_dirs:
                     keras_paras,
                     opt.new_spacing,
                     opt.normalization_mode,
-                    opt.target_size)
+                    opt.target_size,
+                    likelihood_categorization=opt.likelihood_categorization)
         if opt.use_frac_patch:
             if not opt.constant_size:
                 brain_seg_prediction(
@@ -438,7 +445,8 @@ for mouse_dir in mouse_dirs:
                     opt.new_spacing,
                     opt.normalization_mode,
                     frac_patch=opt.frac_patch,
-                    frac_stride=opt.frac_stride)
+                    frac_stride=opt.frac_stride,
+                    likelihood_categorization=opt.likelihood_categorization)
             elif opt.constant_size:
                 opt.new_spacing = None
                 brain_seg_prediction(
@@ -451,7 +459,8 @@ for mouse_dir in mouse_dirs:
                     opt.normalization_mode,
                     opt.target_size,
                     frac_patch=opt.frac_patch,
-                    frac_stride=opt.frac_stride)
+                    frac_stride=opt.frac_stride,
+                    likelihood_categorization=opt.likelihood_categorization)
         # If everything ran well up to this point, clean up the backup file and put the source .nii
         # back where it belongs
         shutil.copyfile(original_fn, source_fn)
@@ -468,7 +477,6 @@ for mouse_dir in mouse_dirs:
             file_quality_check_df = quality_check(source_array, mask_array, qc_classifier, source_fn, mask_fn, opt.qc_skip_edges)
             quality_check_list = quality_check_list.append(file_quality_check_df, ignore_index=True)
 
-print(quality_check_list)
 if len(quality_check_list) > 0:
     print('Saving quality check file to: ' + opt.input + 'quality_check.csv')
     quality_check_list.to_csv(opt.input + '/quality_check.csv', index=False)
