@@ -15,7 +15,8 @@ def z_axis_correction(
         normalization_mode,
         target_size=None,
         frac_patch=None,
-        frac_stride=None):
+        frac_stride=None,
+        likelihood_categorization=True):
     # Function that handles performing z-axis correction
     # Z-axis correction attempts to normalize the intensity of brain regions across slices. To do so,
     # it calculates a preliminary mask on raw data. That preliminary mask is eroded to increase the likelihood
