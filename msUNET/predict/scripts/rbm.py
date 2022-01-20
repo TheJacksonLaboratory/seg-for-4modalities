@@ -80,14 +80,14 @@ def brain_seg_prediction(
         interpolator=sitk.sitkNearestNeighbor,
         revert=True)
     # Save non-resampled results
-    sitk.WriteImage(
-        out_label_img,
-        output_path.split('.nii')[0] +
-        '_downsampled_mask.nii')
-    sitk.WriteImage(
-        out_likelihood_img,
-        output_path.split('.nii')[0] +
-        '_downsampled_likelihood.nii')
+    #sitk.WriteImage(
+    #    out_label_img,
+    #    output_path.split('.nii')[0] +
+    #    '_downsampled_mask.nii')
+    #sitk.WriteImage(
+    #    out_likelihood_img,
+    #    output_path.split('.nii')[0] +
+    #    '_downsampled_likelihood.nii')
     # Save the results
     sitk.WriteImage(resampled_label_map, output_path)
     sitk.WriteImage(

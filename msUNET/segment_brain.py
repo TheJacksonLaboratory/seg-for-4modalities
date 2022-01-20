@@ -82,7 +82,7 @@ parser.add_argument(
     "--threshold",
     help="Score threshold for selecting brain region",
     type=float,
-    default=0.5)
+    default=0.3)
 parser.add_argument(
     "-cl",
     "--channel_location",
@@ -138,7 +138,7 @@ parser.add_argument(
     "--quality_checks",
     help="Perform pre/post inference quality checks. If true, will output a list of IDs + slices that have an issue",
     type=str2bool,
-    default=False)
+    default=True)
 parser.add_argument(
     "-st",
     "--low_snr_threshold",
@@ -170,8 +170,8 @@ parser.add_argument(
     "-ts",
     "--target_size",
     default=[
-        280,
-        280,
+        260,
+        260,
         None],
     nargs="*",
     type=int,
@@ -191,7 +191,7 @@ parser.add_argument(
 parser.add_argument(
     "-fs",
     "--frac_stride",
-    default=0.25,
+    default=0.125,
     required=False,
     type=float)
 parser.add_argument(
@@ -202,7 +202,7 @@ parser.add_argument(
 parser.add_argument(
     "-lc",
     "--likelihood_categorization",
-    default=False,
+    default=True,
     type=str2bool)
 #parser.add_argument( # Deprecated debug option
 #    "-sp",
@@ -291,7 +291,8 @@ if opt.input_type == 'dataset':
                                                opt.frac_patch,
                                                opt.frac_stride,
                                                opt.quality_checks,
-                                               opt.qc_skip_edges)
+                                               opt.qc_skip_edges,
+                                               opt.target_size)
             quality_check = quality_check.append(quality_check_temp, ignore_index=True)
 
 elif opt.input_type == 'directory':
@@ -316,7 +317,8 @@ elif opt.input_type == 'directory':
                                            opt.frac_patch,
                                            opt.frac_stride,
                                            opt.quality_checks,
-                                           opt.qc_skip_edges)
+                                           opt.qc_skip_edges,
+                                           opt.target_size)
         quality_check = quality_check.append(quality_check_temp, ignore_index=True)
 
 elif opt.input_type == 'file':
@@ -347,14 +349,15 @@ elif opt.input_type == 'file':
                                    opt.frac_patch,
                                    opt.frac_stride,
                                    opt.quality_checks,
-                                   opt.qc_skip_edges)
+                                   opt.qc_skip_edges,
+                                   opt.target_size)
     quality_check = quality_check.append(quality_check_temp, ignore_index=True)
 
 if len(quality_check) > 0:
     if opt.input_type == 'file':
         input_path_obj = PurePath(opt.input)
-        print('Saving quality check file to: ' + input_path_obj.parents[0] + '/quality_check.csv')
-        quality_check.to_csv(input_path_obj.parents[0] + '/quality_check.csv', index=False)        
+        print('Saving quality check file to: ' + str(input_path_obj.parents[0]) + '/quality_check.csv')
+        quality_check.to_csv(str(input_path_obj.parents[0]) + '/quality_check.csv', index=False)        
     else:   
         print('Saving quality check file to: ' + opt.input + 'quality_check.csv')
         quality_check.to_csv(opt.input + '/quality_check.csv', index=False)

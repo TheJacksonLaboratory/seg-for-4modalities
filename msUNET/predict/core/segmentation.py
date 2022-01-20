@@ -37,7 +37,8 @@ def segment_brain(source_fn,
                   frac_patch,
                   frac_stride,
                   quality_checks,
-                  qc_skip_edges):
+                  qc_skip_edges,
+                  target_size):
 
     suffix = get_suffix(z_axis_correction, y_axis_correction)
     # print(suffix)
@@ -213,9 +214,9 @@ def segment_brain(source_fn,
                 voxsize,
                 pre_paras,
                 keras_paras,
-                opt.new_spacing,
-                opt.normalization_mode,
-                opt.target_size,
+                new_spacing,
+                normalization_mode,
+                target_size,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,
                 likelihood_categorization=likelihood_categorization)
