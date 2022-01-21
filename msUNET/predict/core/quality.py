@@ -389,18 +389,12 @@ def quality_check(source_array, mask_array,qc_classifier, source_fn, mask_fn, sk
 						 			chamfer_dist, max_loc_horiz, max_loc_vert, otsu_size_frac,
 							 		roundness, elongation]).reshape(1,-1)
 			prediction = (qc_classifier.predict_proba(feature_array)[:,1] >= 0.70).astype(bool)
-			print(feature_array)
 			if prediction == False:
 				notes = 'Model Classified'
-		
-		print(prediction)
 
 		if prediction == False:
 			slice_df = {'filename': str(source_fn), 'slice_index': str(slice_index), 'notes': str(notes)}
-			print(slice_df)
 			file_quality_check = file_quality_check.append(slice_df, ignore_index=True)
-
-	print(file_quality_check)
 
 	return file_quality_check
 

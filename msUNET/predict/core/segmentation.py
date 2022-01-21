@@ -23,8 +23,8 @@ import pandas as pd
 import os
 
 def segment_brain(source_fn,
-                  z_axis_correction,
-                  y_axis_correction,
+                  z_axis_correction_check,
+                  y_axis_correction_check,
                   voxsize,
                   pre_paras,
                   keras_paras,
@@ -40,7 +40,7 @@ def segment_brain(source_fn,
                   qc_skip_edges,
                   target_size):
 
-    suffix = get_suffix(z_axis_correction, y_axis_correction)
+    suffix = get_suffix(z_axis_correction_check, y_axis_correction_check)
     # print(suffix)
 
     # Write a copy of the source image to original_fn_original.nii
@@ -76,7 +76,7 @@ def segment_brain(source_fn,
     #source_image = sitk.Cast(source_image, sitk.sitk.UInt8)
     sitk.WriteImage(source_image, source_fn)
 
-    if z_axis_correction == 'True':
+    if z_axis_correction_check == 'True':
         # Run z-axis correction, producing modified data
         z_axis_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + '_z_axis' + ''.join(source_path_obj.suffixes)))
         z_axis_path_obj = PurePath(z_axis_fn)
@@ -131,7 +131,7 @@ def segment_brain(source_fn,
                     frac_patch=frac_patch,
                     frac_stride=frac_stride,
                     likelihood_categorization=likelihood_categorization)
-    if y_axis_correction == 'True':
+    if y_axis_correction_check == 'True':
         # Run y-axis correction, producing modified data
         print('Performing y-axis correction to source data')
         y_axis_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + '_n4b' + ''.join(source_path_obj.suffixes)))
@@ -146,7 +146,7 @@ def segment_brain(source_fn,
             new_spacing,
             y_axis_mask)
 
-        if z_axis_correction == 'True':
+        if z_axis_correction_check == 'True':
             print('Performing y-axis correction to z-axis corrected data')
             # If we have already done a z-axis correction, do a y axis correction on that file too.
             # The file created with n4b alone is simply intended to be a
@@ -233,7 +233,7 @@ def segment_brain(source_fn,
         print('Performing post-inference quality checks')
         source_array = sitk.GetArrayFromImage(sitk.ReadImage(source_fn))
         mask_array = sitk.GetArrayFromImage(sitk.ReadImage(mask_fn))
-        qc_classifier = joblib.load('./predict/scripts/quality_check_11822.joblib')
+        qc_classifier = joblib.load('./msUNET/predict/scripts/quality_check_11822.joblib')
         file_quality_check_df = quality_check(source_array, mask_array, qc_classifier, source_fn, mask_fn, qc_skip_edges)
         quality_check_list = quality_check_list.append(file_quality_check_df, ignore_index=True)
 

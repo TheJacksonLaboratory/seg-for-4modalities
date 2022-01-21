@@ -82,7 +82,7 @@ parser.add_argument(
     "--threshold",
     help="Score threshold for selecting brain region",
     type=float,
-    default=0.3)
+    default=0.4)
 parser.add_argument(
     "-cl",
     "--channel_location",
@@ -140,11 +140,10 @@ parser.add_argument(
     type=str2bool,
     default=True)
 parser.add_argument(
-    "-st",
-    "--low_snr_threshold",
-    help="Multiplicative threshold below which low SNR warning flag will be thrown",
-    type=float,
-    default=3.5)
+    "-se",
+    "--qc_skip_edges",
+    default=False,
+    type=str2bool)
 parser.add_argument(
     "-nt",
     "--normalization_mode",
@@ -170,8 +169,8 @@ parser.add_argument(
     "-ts",
     "--target_size",
     default=[
-        260,
-        260,
+        188,
+        188,
         None],
     nargs="*",
     type=int,
@@ -194,11 +193,6 @@ parser.add_argument(
     default=0.125,
     required=False,
     type=float)
-parser.add_argument(
-    "-se",
-    "--qc_skip_edges",
-    default=False,
-    type=str2bool)
 parser.add_argument(
     "-lc",
     "--likelihood_categorization",
@@ -250,7 +244,7 @@ keras_paras.outID = 0
 keras_paras.thd = opt.threshold
 keras_paras.loss = 'dice_coef_loss'
 keras_paras.img_format = opt.channel_location
-keras_paras.model_path = './predict/scripts/' + opt.model
+keras_paras.model_path = './msUNET/predict/scripts/' + opt.model
 
 # Declare input variables that generally remain constant in the instance
 # of constant input type

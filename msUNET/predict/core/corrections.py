@@ -56,7 +56,7 @@ def z_axis_correction(
                 keras_paras,
                 new_spacing,
                 normalization_mode,
-                likelihood_categorization=opt.likelihood_categorization)
+                likelihood_categorization=likelihood_categorization)
         elif target_size is not None:
             brain_seg_prediction(
                 input_fn,
@@ -67,7 +67,7 @@ def z_axis_correction(
                 new_spacing,
                 normalization_mode,
                 target_size,
-                likelihood_categorization=opt.likelihood_categorization)
+                likelihood_categorization=likelihood_categorization)
     if frac_patch is not None:
         if target_size is None:
             brain_seg_prediction(
@@ -80,7 +80,7 @@ def z_axis_correction(
                 normalization_mode,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,
-                likelihood_categorization=opt.likelihood_categorization)
+                likelihood_categorization=likelihood_categorization)
         elif target_size is not None:
             brain_seg_prediction(
                 input_fn,
@@ -93,7 +93,7 @@ def z_axis_correction(
                 target_size,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,
-                likelihood_categorization=opt.likelihood_categorization)
+                likelihood_categorization=likelihood_categorization)
 
     # Load and erode the preliminary mask
     erode_filter = sitk.BinaryErodeImageFilter()

@@ -42,13 +42,13 @@ def out_LabelHot_map_2D(
     col_range_forward = list(range(0, col - patch_dims[1] + 1, strides[1]))
     col_range_forward.append(col_range_forward[-1]+(col-(patch_dims[1]+(len(col_range_forward)-1)*strides[1])))
     row_range_forward = list(range(0, row - patch_dims[2] + 1, strides[2]))
-    row_range_forward.append(row_range_forward[-1]+(col-(patch_dims[2]+(len(row_range_forward)-1)*strides[2])))
+    row_range_forward.append(row_range_forward[-1]+(row-(patch_dims[2]+(len(row_range_forward)-1)*strides[2])))
 
     slice_range_backward = list(range(length, patch_dims[0] - 1, -strides[0]))
     col_range_backward = list(range(col, patch_dims[1] - 1, -strides[1]))
     col_range_backward.append(col_range_backward[-1]-(col-(patch_dims[1]+(len(col_range_backward)-1)*strides[1])))
     row_range_backward = list(range(row, patch_dims[2] - 1, -strides[2]))
-    row_range_backward.append(row_range_backward[-1]-(col-(patch_dims[2]+(len(row_range_backward)-1)*strides[2])))
+    row_range_backward.append(row_range_backward[-1]-(row-(patch_dims[2]+(len(row_range_backward)-1)*strides[2])))
 
     for i in slice_range_forward:
         for j in col_range_forward:
@@ -146,7 +146,5 @@ def out_LabelHot_map_2D(
     if likelihood_categorization == True:
         likelihood_map = np.divide(likelihood_map, counter_map)
         label_map = np.where(likelihood_map > keras_paras.thd, 1, 0)
-        print(np.amax(likelihood_map))
-        print(np.mean(likelihood_map))
 
     return label_map, likelihood_map
