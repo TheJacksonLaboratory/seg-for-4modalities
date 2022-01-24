@@ -11,6 +11,7 @@ from predict.scripts.rbm import brain_seg_prediction
 from predict.core.quality import quality_check
 from predict.scripts.original_seg import brain_seg_prediction_original
 from pathlib import PurePath
+from contextlib import redirect_stdout
 import joblib
 import shutil
 import SimpleITK as sitk
@@ -21,6 +22,9 @@ import pprint
 import numpy as np
 import pandas as pd
 import os
+import warnings
+
+sitk.ProcessObject_SetGlobalWarningDisplay(False)
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -258,6 +262,9 @@ if opt.input_type == 'dataset':
     print(
         'It contains the following subdirectories corresponding to individual mice: \n' +
         str(mouse_dirs))
+    input_path_obj = PurePath(opt.input)
+    qc_log_path = str(opt.input + '/segmentation_log.txt')
+    sys.stderr = open(qc_log_path, 'w')
     for mouse_dir in mouse_dirs:
         # Determine what modalities will be evaluated for each mouse.
         modality_dirs = sorted(listdir_nohidden(mouse_dir))
@@ -288,12 +295,17 @@ if opt.input_type == 'dataset':
                                                opt.qc_skip_edges,
                                                opt.target_size)
             quality_check = quality_check.append(quality_check_temp, ignore_index=True)
+    sys.stderr.close()
+    sys.stderr = sys.__stderr__
 
 elif opt.input_type == 'directory':
     print('Working with the following directory: ' + opt.input)
     print('It contains the following data files: \n' + 
         str(listdir_nohidden(opt.input)))
     source_files = listdir_nohidden(opt.input)
+    input_path_obj = PurePath(opt.input)
+    qc_log_path = str(opt.input + '/segmentation_log.txt')
+    sys.stderr = open(qc_log_path, 'w')
     for source_fn in source_files:
         print('Starting Inference on file: ' + source_fn)
         quality_check_temp = segment_brain(source_fn,
@@ -314,6 +326,8 @@ elif opt.input_type == 'directory':
                                            opt.qc_skip_edges,
                                            opt.target_size)
         quality_check = quality_check.append(quality_check_temp, ignore_index=True)
+    sys.stderr.close()
+    sys.stderr = sys.__stderr__
 
 elif opt.input_type == 'file':
     opt.skip_preprocessing = False
@@ -328,6 +342,9 @@ elif opt.input_type == 'file':
     print('Performing inference on the following file: ' + str(opt.input))
     source_fn = opt.input
     print('Starting Inference on file: ' + source_fn)
+    input_path_obj = PurePath(opt.input)
+    qc_log_path = str(input_path_obj.parents[0]) + '/segmentation_log.txt'
+    sys.stderr = open(qc_log_path, 'w')
     quality_check_temp = segment_brain(source_fn,
                                    opt.z_axis_correction,
                                    opt.y_axis_correction,
@@ -345,11 +362,12 @@ elif opt.input_type == 'file':
                                    opt.quality_checks,
                                    opt.qc_skip_edges,
                                    opt.target_size)
+    sys.stderr.close()
+    sys.stderr = sys.__stderr__
     quality_check = quality_check.append(quality_check_temp, ignore_index=True)
 
 if len(quality_check) > 0:
     if opt.input_type == 'file':
-        input_path_obj = PurePath(opt.input)
         print('Saving quality check file to: ' + str(input_path_obj.parents[0]) + '/quality_check.csv')
         quality_check.to_csv(str(input_path_obj.parents[0]) + '/quality_check.csv', index=False)        
     else:   

@@ -4,6 +4,7 @@ from ..scripts.rbm import brain_seg_prediction
 from .quality import quality_check
 from ..scripts.original_seg import brain_seg_prediction_original
 from .utils import get_suffix
+from contextlib import redirect_stdout
 import numpy as np
 import SimpleITK as sitk
 import glob

@@ -1,0 +1,62 @@
+filename,slice_index,notes
+demo/test_dataset/mouse1/anatomical/anatomical.nii,1,Model Classified
+demo/test_dataset/mouse1/anatomical/anatomical.nii,3,Model Classified
+demo/test_dataset/mouse1/anatomical/anatomical.nii,4,Model Classified
+demo/test_dataset/mouse1/anatomical/anatomical.nii,5,Model Classified
+demo/test_dataset/mouse1/anatomical/anatomical.nii,6,Model Classified
+demo/test_dataset/mouse1/anatomical/anatomical.nii,7,Model Classified
+demo/test_dataset/mouse1/anatomical/anatomical.nii,8,Model Classified
+demo/test_dataset/mouse1/dti/dti.nii,1,Feature Calculation Failure
+demo/test_dataset/mouse1/dti/dti.nii,2,Model Classified
+demo/test_dataset/mouse1/dti/dti.nii,3,Model Classified
+demo/test_dataset/mouse1/dti/dti.nii,4,Model Classified
+demo/test_dataset/mouse1/dti/dti.nii,5,Model Classified
+demo/test_dataset/mouse1/dti/dti.nii,6,Model Classified
+demo/test_dataset/mouse1/dti/dti.nii,7,Model Classified
+demo/test_dataset/mouse1/dti/dti.nii,17,Feature Calculation Failure
+demo/test_dataset/mouse1/fmri/fmri.nii,2,Model Classified
+demo/test_dataset/mouse1/fmri/fmri.nii,3,Model Classified
+demo/test_dataset/mouse1/fmri/fmri.nii,4,Model Classified
+demo/test_dataset/mouse1/fmri/fmri.nii,5,Model Classified
+demo/test_dataset/mouse1/fmri/fmri.nii,15,Model Classified
+demo/test_dataset/mouse1/noddi/noddi.nii,1,Feature Calculation Failure
+demo/test_dataset/mouse1/noddi/noddi.nii,2,Model Classified
+demo/test_dataset/mouse1/noddi/noddi.nii,3,Model Classified
+demo/test_dataset/mouse1/noddi/noddi.nii,4,Model Classified
+demo/test_dataset/mouse1/noddi/noddi.nii,5,Model Classified
+demo/test_dataset/mouse1/noddi/noddi.nii,17,Feature Calculation Failure
+demo/test_dataset/mouse2/anatomical/anatomical.nii,2,Model Classified
+demo/test_dataset/mouse2/anatomical/anatomical.nii,3,Model Classified
+demo/test_dataset/mouse2/anatomical/anatomical.nii,4,Model Classified
+demo/test_dataset/mouse2/anatomical/anatomical.nii,5,Model Classified
+demo/test_dataset/mouse2/anatomical/anatomical.nii,6,Model Classified
+demo/test_dataset/mouse2/dti/dti.nii,1,Feature Calculation Failure
+demo/test_dataset/mouse2/dti/dti.nii,3,Model Classified
+demo/test_dataset/mouse2/dti/dti.nii,4,Model Classified
+demo/test_dataset/mouse2/dti/dti.nii,5,Model Classified
+demo/test_dataset/mouse2/dti/dti.nii,6,Model Classified
+demo/test_dataset/mouse2/dti/dti.nii,7,Model Classified
+demo/test_dataset/mouse2/dti/dti.nii,17,Feature Calculation Failure
+demo/test_dataset/mouse2/fmri/fmri.nii,3,Model Classified
+demo/test_dataset/mouse2/fmri/fmri.nii,4,Model Classified
+demo/test_dataset/mouse2/fmri/fmri.nii,5,Model Classified
+demo/test_dataset/mouse2/noddi/noddi.nii,1,Feature Calculation Failure
+demo/test_dataset/mouse2/noddi/noddi.nii,3,Model Classified
+demo/test_dataset/mouse2/noddi/noddi.nii,4,Model Classified
+demo/test_dataset/mouse2/noddi/noddi.nii,5,Model Classified
+demo/test_dataset/mouse2/noddi/noddi.nii,17,Feature Calculation Failure
+demo/test_dataset/mouse3/anatomical/20180618_100038_Mouse_Jackson1_1_1_niftianatomical_data.nii.gz,1,Model Classified
+demo/test_dataset/mouse3/anatomical/20180618_100038_Mouse_Jackson1_1_1_niftianatomical_data.nii.gz,4,Model Classified
+demo/test_dataset/mouse3/anatomical/20180618_100038_Mouse_Jackson1_1_1_niftianatomical_data.nii.gz,6,Model Classified
+demo/test_dataset/mouse3/dti/20180618_100038_Mouse_Jackson1_1_1_niftidti_data.nii.gz,1,Model Classified
+demo/test_dataset/mouse3/dti/20180618_100038_Mouse_Jackson1_1_1_niftidti_data.nii.gz,3,Model Classified
+demo/test_dataset/mouse3/dti/20180618_100038_Mouse_Jackson1_1_1_niftidti_data.nii.gz,4,Model Classified
+demo/test_dataset/mouse3/dti/20180618_100038_Mouse_Jackson1_1_1_niftidti_data.nii.gz,5,Model Classified
+demo/test_dataset/mouse3/dti/20180618_100038_Mouse_Jackson1_1_1_niftidti_data.nii.gz,6,Model Classified
+demo/test_dataset/mouse3/dti/20180618_100038_Mouse_Jackson1_1_1_niftidti_data.nii.gz,7,Model Classified
+demo/test_dataset/mouse3/dti/20180618_100038_Mouse_Jackson1_1_1_niftidti_data.nii.gz,8,Model Classified
+demo/test_dataset/mouse3/dti/20180618_100038_Mouse_Jackson1_1_1_niftidti_data.nii.gz,9,Model Classified
+demo/test_dataset/mouse3/fmri/20180618_100038_Mouse_Jackson1_1_1_niftifmri_data.nii.gz,1,Model Classified
+demo/test_dataset/mouse3/fmri/20180618_100038_Mouse_Jackson1_1_1_niftifmri_data.nii.gz,3,Model Classified
+demo/test_dataset/mouse3/fmri/20180618_100038_Mouse_Jackson1_1_1_niftifmri_data.nii.gz,4,Model Classified
+demo/test_dataset/mouse3/fmri/20180618_100038_Mouse_Jackson1_1_1_niftifmri_data.nii.gz,13,Model Classified

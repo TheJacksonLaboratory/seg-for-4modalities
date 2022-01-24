@@ -2,13 +2,24 @@ import sklearn
 import numpy as np
 import pandas as pd
 import scipy
-import os
+import sys, os
 import matplotlib.pyplot as plt
 import SimpleITK as sitk
 import math
 from PIL import ImageDraw, Image
 from scipy.spatial import ConvexHull
 import joblib
+from contextlib import contextmanager
+
+@contextmanager
+def suppress_stdout():
+    with open(os.devnull, "w") as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:  
+            yield
+        finally:
+            sys.stdout = old_stdout
 
 def resample_img_qc(
         imgobj,
@@ -165,7 +176,8 @@ def otsu_snr_check(current_slice):
     
     masked_background = np.multiply(current_slice,otsu_background)
     masked_background[masked_background == 0] = np.nan
-    masked_background_mean = np.nanmean(masked_background)
+    with suppress_stdout():
+        masked_background_mean = np.nanmean(masked_background)
     masked_background_std = np.nanstd(masked_background)/np.nanmean(masked_background)
     
     otsu_fraction = np.count_nonzero(otsu_array)/otsu_array.size
@@ -344,7 +356,6 @@ def connected_components_count(mask_array):
 	no_connected_components = connected_components_filter.GetObjectCount()
 
 	return no_connected_components
-
 
 def quality_check(source_array, mask_array,qc_classifier, source_fn, mask_fn, skip_edges):
 	file_quality_check = pd.DataFrame(columns=['filename', 'slice_index', 'notes'])

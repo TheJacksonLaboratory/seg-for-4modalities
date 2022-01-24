@@ -6,4 +6,5 @@ find test_dataset/ -maxdepth 3 -type f -name "*z_axis*.nii*" -delete
 find test_dataset/ -maxdepth 3 -type f -name "*y_axis*.nii*" -delete
 find test_dataset/ -maxdepth 3 -type f -name "*backup*.nii*" -delete
 find test_dataset/ -maxdepth 3 -type f -name "*n4b*.nii*" -delete
-find test_dataset/ -maxdepth 3 -type f -name "quality_check.txt" -delete
+find test_dataset/ -maxdepth 3 -type f -name "quality_check.csv" -delete
+find test_dataset/ -maxdepth 3 -type f -name "segmentation_log.txt" -delete
