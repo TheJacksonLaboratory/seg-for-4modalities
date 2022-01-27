@@ -229,7 +229,7 @@ def segment_brain(source_fn,
     # Do some post-inference quality checks
     # Often overlap with each other and with low SNR. Can catch unique
     # cases though.
-    quality_check_list = pd.DataFrame(columns=['filename', 'slice_index', 'notes'])
+    quality_check_list = pd.DataFrame(columns=['filename', 'slice_index', 'notes_1', 'notes_2'])
     if quality_checks:
         print('Performing post-inference quality checks')
         source_array = sitk.GetArrayFromImage(sitk.ReadImage(source_fn))
