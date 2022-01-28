@@ -35,6 +35,7 @@ def out_LabelHot_map_2D(
     length, col, row = img.shape
     categorical_map = np.zeros((n_class, length, col, row), dtype=np.uint8)
     likelihood_map = np.zeros((length, col, row), dtype=np.float32)
+    likelihood_map_max = np.zeros((length, col, row), dtype=np.float32)
     counter_map = np.zeros((length, col, row), dtype=np.float32)
     length_step = int(patch_dims[0] / 2)
 
@@ -90,6 +91,11 @@ def out_LabelHot_map_2D(
                                k:k + label_dims[2]] = likelihood_map[middle,
                                                                      j:j + label_dims[1],
                                                                      k:k + label_dims[2]] + cur_patch_output
+                likelihood_map_max[middle,
+                               j:j + label_dims[1],
+                               k:k + label_dims[2]] = np.maximum(likelihood_map_max[middle,
+                                                                                    j:j + label_dims[1],
+                                                                                    k:k + label_dims[2]], cur_patch_output)
                 counter_map[middle,
                             j:j + label_dims[1],
                             k:k + label_dims[2]] += 1
@@ -136,13 +142,15 @@ def out_LabelHot_map_2D(
                 counter_map[middle, j - label_dims[1]                            :j, k - label_dims[2]:k] += 1
 
     if likelihood_categorization == False:
-        label_map = np.zeros([length, col, row], dtype=np.uint8)
-        for idx in range(0, length):
-            cur_slice_label = np.squeeze(categorical_map[:, idx, ].argmax(axis=0))
-            label_map[idx, ] = cur_slice_label
+        #label_map = np.zeros([length, col, row], dtype=np.uint8)
+        #for idx in range(0, length):
+        #    cur_slice_label = np.squeeze(categorical_map[:, idx, ].argmax(axis=0))
+        #    label_map[idx, ] = cur_slice_label
 
-        counter_map = np.maximum(counter_map, 10e-10)
-        likelihood_map = np.divide(likelihood_map, counter_map)
+        #counter_map = np.maximum(counter_map, 10e-10)
+        #likelihood_map = np.divide(likelihood_map, counter_map)
+        likelihood_map = likelihood_map_max
+        label_map = np.where(likelihood_map > keras_paras.thd, 1, 0)
     if likelihood_categorization == True:
         likelihood_map = np.divide(likelihood_map, counter_map)
         label_map = np.where(likelihood_map > keras_paras.thd, 1, 0)
