@@ -425,34 +425,21 @@ def quality_check(source_array, mask_array,qc_classifier, source_fn, mask_fn, sk
 			max_loc_horiz, max_loc_vert = intensity_location_check(current_data_slice)
 			roundness, elongation = geometry_check(current_data_slice, current_mask_slice)
 			current_mask_ratio, current_source_ratio = mask_area_check(current_mask_slice,current_data_slice)
-			basic_snr = low_snr_check(current_data_slice)
+			#basic_snr = low_snr_check(current_data_slice)
 			#resampled_data_pixel_list = resample_img_qc(sitk.GetImageFromArray(current_data_slice)).flatten()
 			#resampled_mask_pixel_list = resample_img_qc(sitk.GetImageFromArray(current_mask_slice),interpolator=sitk.sitkNearestNeighbor).flatten()
-			solidity = solidity_check(current_mask_slice)
-			hu_array = np.sign(np.array(hu(current_mask_slice)))*np.log(np.absolute(np.array(hu(current_mask_slice))))
-		except:
-			notes = 'Feature Calculation Failure'
-			prediction = False
-
-		try:
-			#TODO: implement bespoke solution for problem with missing brain tissue near bottom of brain
-			#BLOCK
-			lower_region_check = True
-			if lower_region_check == False:
-				notes = 'Potential missing tissue - lower region'
-				prediction = False
-		except:
-			notes = 'Lower region bespoke calculation failed'
-			prediction = False
-
-		if notes == 'None':
+			#solidity = solidity_check(current_mask_slice)
+			#hu_array = np.sign(np.array(hu(current_mask_slice)))*np.log(np.absolute(np.array(hu(current_mask_slice))))
 			feature_array = np.array([current_mask_ratio, no_connected_components, slice_index,
 									otsu_snr, otsu_std, binary_edge_fraction, binary_edge_cc_count,
 									chamfer_dist, max_loc_horiz, max_loc_vert, otsu_size_frac,
 									roundness, elongation]).reshape(1,-1)
 			prediction = (qc_classifier.predict_proba(feature_array)[:,1] >= 0.70).astype(bool)
 			if prediction == False:
-				notes = 'Model Classified'
+				notes = 'Model Classified'		
+		except:
+			notes = 'Feature Calculation Failure'
+			prediction = False
 
 		if prediction == False:
 			slice_df = {'filename': str(source_fn), 'slice_index': str(slice_index), 'notes': str(notes)}
@@ -462,7 +449,6 @@ def quality_check(source_array, mask_array,qc_classifier, source_fn, mask_fn, sk
 								  on=['filename','slice_index'],
 								  suffixes=['_1','_2'],
 								  how='outer')
-	print('Completed Slice Quality Checking')
 
 	return file_quality_check
 

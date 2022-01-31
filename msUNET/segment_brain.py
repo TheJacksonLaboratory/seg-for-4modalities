@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 import os
 import warnings
+import time
 
 sitk.ProcessObject_SetGlobalWarningDisplay(False)
 

@@ -1,0 +1,64 @@
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:180: RuntimeWarning: Mean of empty slice
+  masked_background_mean = np.nanmean(masked_background)
+/Users/frohoz/opt/anaconda3/envs/talosDev/lib/python3.8/site-packages/numpy/lib/nanfunctions.py:1664: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:181: RuntimeWarning: Mean of empty slice
+  masked_background_std = np.nanstd(masked_background)/np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:180: RuntimeWarning: Mean of empty slice
+  masked_background_mean = np.nanmean(masked_background)
+/Users/frohoz/opt/anaconda3/envs/talosDev/lib/python3.8/site-packages/numpy/lib/nanfunctions.py:1664: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:181: RuntimeWarning: Mean of empty slice
+  masked_background_std = np.nanstd(masked_background)/np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:174: RuntimeWarning: Mean of empty slice
+  masked_array_mean = np.nanmean(masked_array)
+/Users/frohoz/opt/anaconda3/envs/talosDev/lib/python3.8/site-packages/numpy/lib/nanfunctions.py:1664: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:175: RuntimeWarning: Mean of empty slice
+  masked_array_std = np.nanstd(masked_array)/np.nanmean(masked_array)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:180: RuntimeWarning: Mean of empty slice
+  masked_background_mean = np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:181: RuntimeWarning: Mean of empty slice
+  masked_background_std = np.nanstd(masked_background)/np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:174: RuntimeWarning: Mean of empty slice
+  masked_array_mean = np.nanmean(masked_array)
+/Users/frohoz/opt/anaconda3/envs/talosDev/lib/python3.8/site-packages/numpy/lib/nanfunctions.py:1664: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:175: RuntimeWarning: Mean of empty slice
+  masked_array_std = np.nanstd(masked_array)/np.nanmean(masked_array)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:180: RuntimeWarning: Mean of empty slice
+  masked_background_mean = np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:181: RuntimeWarning: Mean of empty slice
+  masked_background_std = np.nanstd(masked_background)/np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:180: RuntimeWarning: Mean of empty slice
+  masked_background_mean = np.nanmean(masked_background)
+/Users/frohoz/opt/anaconda3/envs/talosDev/lib/python3.8/site-packages/numpy/lib/nanfunctions.py:1664: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:181: RuntimeWarning: Mean of empty slice
+  masked_background_std = np.nanstd(masked_background)/np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:180: RuntimeWarning: Mean of empty slice
+  masked_background_mean = np.nanmean(masked_background)
+/Users/frohoz/opt/anaconda3/envs/talosDev/lib/python3.8/site-packages/numpy/lib/nanfunctions.py:1664: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:181: RuntimeWarning: Mean of empty slice
+  masked_background_std = np.nanstd(masked_background)/np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:174: RuntimeWarning: Mean of empty slice
+  masked_array_mean = np.nanmean(masked_array)
+/Users/frohoz/opt/anaconda3/envs/talosDev/lib/python3.8/site-packages/numpy/lib/nanfunctions.py:1664: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:175: RuntimeWarning: Mean of empty slice
+  masked_array_std = np.nanstd(masked_array)/np.nanmean(masked_array)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:180: RuntimeWarning: Mean of empty slice
+  masked_background_mean = np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:181: RuntimeWarning: Mean of empty slice
+  masked_background_std = np.nanstd(masked_background)/np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:174: RuntimeWarning: Mean of empty slice
+  masked_array_mean = np.nanmean(masked_array)
+/Users/frohoz/opt/anaconda3/envs/talosDev/lib/python3.8/site-packages/numpy/lib/nanfunctions.py:1664: RuntimeWarning: Degrees of freedom <= 0 for slice.
+  var = nanvar(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:175: RuntimeWarning: Mean of empty slice
+  masked_array_std = np.nanstd(masked_array)/np.nanmean(masked_array)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:180: RuntimeWarning: Mean of empty slice
+  masked_background_mean = np.nanmean(masked_background)
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/msUNET/predict/core/quality.py:181: RuntimeWarning: Mean of empty slice
+  masked_background_std = np.nanstd(masked_background)/np.nanmean(masked_background)

@@ -22,6 +22,7 @@ import pprint
 import numpy as np
 import pandas as pd
 import os
+import time
 
 def segment_brain(source_fn,
                   z_axis_correction_check,
@@ -40,6 +41,8 @@ def segment_brain(source_fn,
                   quality_checks,
                   qc_skip_edges,
                   target_size):
+
+    inference_start_time = time.time()
 
     suffix = get_suffix(z_axis_correction_check, y_axis_correction_check)
     # print(suffix)
@@ -226,16 +229,22 @@ def segment_brain(source_fn,
     shutil.copyfile(original_fn, source_fn)
     os.remove(original_fn)
 
+    print('Completed Inference - Time: ' + str(time.time() - inference_start_time))
+
     # Do some post-inference quality checks
     # Often overlap with each other and with low SNR. Can catch unique
     # cases though.
     quality_check_list = pd.DataFrame(columns=['filename', 'slice_index', 'notes_1', 'notes_2'])
     if quality_checks:
-        print('Performing post-inference quality checks')
+        qc_start_time = time.time()
+        print('Performing post-inference quality checks: ' + source_fn)
+
         source_array = sitk.GetArrayFromImage(sitk.ReadImage(source_fn))
         mask_array = sitk.GetArrayFromImage(sitk.ReadImage(mask_fn))
         qc_classifier = joblib.load('./msUNET/predict/scripts/quality_check_11822.joblib')
         file_quality_check_df = quality_check(source_array, mask_array, qc_classifier, source_fn, mask_fn, qc_skip_edges)
         quality_check_list = quality_check_list.append(file_quality_check_df, ignore_index=True)
+
+        print('Completed Quality Checks - Time: ' + str(time.time() - qc_start_time))
 
     return quality_check_list
