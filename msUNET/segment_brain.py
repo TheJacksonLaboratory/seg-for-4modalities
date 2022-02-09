@@ -6,6 +6,7 @@ from predict.core.utils import intermediate_likelihood_check
 from predict.core.utils import mask_area_check
 from predict.core.utils import low_snr_check
 from predict.core.utils import listdir_nohidden
+from predict.core.utils import input_logging
 from predict.core.segmentation import segment_brain
 from predict.scripts.rbm import brain_seg_prediction
 from predict.core.quality import quality_check
@@ -213,8 +214,6 @@ parser.add_argument( # Deprecated debug option
 opt = parser.parse_args()
 
 # Initialize parameter classes
-
-
 class KerasParas:
     def __init__(self):
         self.model_path = None
@@ -265,6 +264,7 @@ if opt.input_type == 'dataset':
         str(mouse_dirs))
     input_path_obj = PurePath(opt.input)
     qc_log_path = str(opt.input + '/segmentation_log.txt')
+    input_logging(opt, sys.argv)
     sys.stderr = open(qc_log_path, 'w')
     for mouse_dir in mouse_dirs:
         # Determine what modalities will be evaluated for each mouse.
@@ -306,6 +306,7 @@ elif opt.input_type == 'directory':
     source_files = listdir_nohidden(opt.input)
     input_path_obj = PurePath(opt.input)
     qc_log_path = str(opt.input + '/segmentation_log.txt')
+    input_logging(opt, sys.argv)
     sys.stderr = open(qc_log_path, 'w')
     for source_fn in source_files:
         print('Starting Inference on file: ' + source_fn)
@@ -344,6 +345,7 @@ elif opt.input_type == 'file':
     print('Starting Inference on file: ' + source_fn)
     input_path_obj = PurePath(opt.input)
     qc_log_path = str(input_path_obj.parents[0]) + '/segmentation_log.txt'
+    input_logging(opt, sys.argv)
     sys.stderr = open(qc_log_path, 'w')
     quality_check_temp = segment_brain(source_fn,
                                    opt.z_axis_correction,

@@ -379,7 +379,7 @@ def low_brain_region(source_array, mask_array, source_fn, mask_fn):
 			data_slice_prev = source_array[i-1,:,:]
 			mask_slice_prev = mask_array[i-1,:,:]
 			mask_area_prev, data_area_prev = mask_area_check(mask_slice_prev, data_slice_prev)
-		if i > 5 and i < 10 and mask_area > 0.25:
+		if i > 0 and i < mask_array.shape[0]-1 and mask_area > 0.25:
 			if mask_area < mask_area_next and mask_area < mask_area_prev:
 				slice_flag = True
 				prev_check = True

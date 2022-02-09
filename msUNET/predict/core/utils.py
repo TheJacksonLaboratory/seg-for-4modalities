@@ -289,3 +289,30 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
+
+def input_logging(opt, input_command):
+    if opt.input_type == 'dataset':
+        input_log_path = str(opt.input + '/input_log.txt')
+    elif opt.input_type == 'directory':
+        input_log_path = str(opt.input + '/input_log.txt')
+    elif opt.input_type == 'file':
+        input_path_obj = PurePath(opt.input)
+        input_log_path = str(input_path_obj.parents[0]) + '/input_log.txt'
+
+    with open(input_log_path, 'w') as input_log:
+        input_log.write('Working Directory: ')
+        input_log.write('\n')
+        input_log.write(str(os.getcwd()))
+        input_log.write('\n')
+        input_log.write('\n')
+        input_log.write('Command Passed to segment_brain.py: ')
+        input_log.write('\n')
+        input_log.write(" ".join(f"'{i}'" if " " in i else i for i in input_command))
+        input_log.write('\n')
+        input_log.write('\n')
+        input_log.write('Parameters Used: ')
+        input_log.write('\n')
+        for i in range(len(str(opt)[10:-1].split(','))):
+            input_log.write(str(opt)[10:-1].split(',')[i].strip())
+            input_log.write('\n')
+
