@@ -87,7 +87,7 @@ parser.add_argument(
     "--threshold",
     help="Score threshold for selecting brain region",
     type=float,
-    default=0.4)
+    default=0.3)
 parser.add_argument(
     "-cl",
     "--channel_location",
@@ -203,12 +203,12 @@ parser.add_argument(
     "--likelihood_categorization",
     default=True,
     type=str2bool)
-#parser.add_argument( # Deprecated debug option
-#    "-sp",
-#    "--skip_preprocessing",
-#    help="Skip all preprocessing steps and use original segmentation algorithm",
-#    type=str2bool,
-#    default=False)
+parser.add_argument( # Deprecated debug option
+    "-sp",
+    "--skip_preprocessing",
+    help="Skip all preprocessing steps and use original segmentation algorithm",
+    type=str2bool,
+    default=False)
 
 opt = parser.parse_args()
 
@@ -331,14 +331,13 @@ elif opt.input_type == 'directory':
     sys.stderr = sys.__stderr__
 
 elif opt.input_type == 'file':
-    opt.skip_preprocessing = False
     if opt.skip_preprocessing == True: # Debug option, currently disabled
         print('Skipping all preprocessing steps...')
-        if opt.input_filename is not None:
+        if opt.input is not None:
             input_path_obj = PurePath(opt.input)
             output_filename  = str(input_path_obj.with_name(input_path_obj.stem.split('.')[0] + '_mask' + ''.join(input_path_obj.suffixes)))
             print(output_filename)
-            brain_seg_prediction_original(opt.input_filename, output_filename, voxsize, pre_paras, keras_paras, opt.likelihood_categorization)
+            brain_seg_prediction_original(opt.input, output_filename, voxsize, pre_paras, keras_paras, opt.likelihood_categorization)
             exit()
     print('Performing inference on the following file: ' + str(opt.input))
     source_fn = opt.input

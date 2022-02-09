@@ -79,16 +79,11 @@ def brain_seg_prediction(
         target_size=imgobj.GetSize(),
         interpolator=sitk.sitkNearestNeighbor,
         revert=True)
-    # Save non-resampled results
-    #sitk.WriteImage(
-    #    out_label_img,
-    #    output_path.split('.nii')[0] +
-    #    '_downsampled_mask.nii')
-    #sitk.WriteImage(
-    #    out_likelihood_img,
-    #    output_path.split('.nii')[0] +
-    #    '_downsampled_likelihood.nii')
-    # Save the results
+
+    # Fill small holes in binary mask
+    binary_hole_filler = sitk.BinaryFillholeImageFilter()
+    resampled_label_map = binary_hole_filler.Execute(resampled_label_map)
+
     sitk.WriteImage(resampled_label_map, output_path)
     sitk.WriteImage(
         resampled_likelihood_map,
