@@ -1,3 +1,6 @@
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+import tensorflow as tf
 from predict.core.corrections import y_axis_correction
 from predict.core.corrections import z_axis_correction
 from predict.core.utils import str2bool
@@ -22,13 +25,12 @@ import sys
 import pprint
 import numpy as np
 import pandas as pd
-import os
 import warnings
 import time
 
 sitk.ProcessObject_SetGlobalWarningDisplay(False)
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 
 
 # Main function that handles inference for segmentation tasks.
