@@ -241,7 +241,7 @@ def segment_brain(source_fn,
 
         source_array = sitk.GetArrayFromImage(sitk.ReadImage(source_fn))
         mask_array = sitk.GetArrayFromImage(sitk.ReadImage(mask_fn))
-        qc_classifier = joblib.load('./msUNET/predict/scripts/quality_check_11822.joblib')
+        qc_classifier = joblib.load('./msUNET/predict/scripts/quality_check_22822.joblib')
         file_quality_check_df = quality_check(source_array, mask_array, qc_classifier, source_fn, mask_fn, qc_skip_edges)
         quality_check_list = quality_check_list.append(file_quality_check_df, ignore_index=True)
 

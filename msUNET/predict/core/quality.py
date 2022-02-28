@@ -170,6 +170,7 @@ def otsu_snr_check(current_slice):
 	otsu_background = np.where((otsu_array==0)|(otsu_array==1), otsu_array^1, otsu_array)
 	
 	masked_array = np.multiply(current_slice,otsu_array)
+	masked_array = np.nan_to_num(masked_array)
 	masked_array[masked_array == 0] = np.nan
 	masked_array_mean = np.nanmean(masked_array)
 	masked_array_std = np.nanstd(masked_array)/np.nanmean(masked_array)
@@ -191,7 +192,7 @@ def edge_detection(current_slice, current_mask):
 	current_image = sitk.GetImageFromArray(current_slice)
 	current_image_mask = sitk.GetImageFromArray(current_mask)
 	edge_detection_filter = sitk.SobelEdgeDetectionImageFilter()
-	edges_image = edge_detection_filter.Execute(current_image)
+	edges_image = edge_detection_filter.Execute(sitk.Cast(current_image,sitk.sitkFloat32))
 	edges_mask = edge_detection_filter.Execute(sitk.Cast(current_image_mask,sitk.sitkFloat32))
 	
 	binary_image_filter = sitk.LiThresholdImageFilter()
@@ -406,9 +407,11 @@ def low_brain_region(source_array, mask_array, source_fn, mask_fn):
 
 
 def quality_check(source_array, mask_array,qc_classifier, source_fn, mask_fn, skip_edges):
-	file_quality_check = pd.DataFrame(columns=['filename', 'slice_index', 'notes'])
+	qc_debug = True
 
+	file_quality_check = pd.DataFrame(columns=['filename', 'slice_index', 'notes'])
 	stack_quality_check = low_brain_region(source_array, mask_array, source_fn, mask_fn)
+	qc_feature_list = []
 
 	for i in range(source_array.shape[0]):
 		if skip_edges == True:
@@ -416,7 +419,7 @@ def quality_check(source_array, mask_array,qc_classifier, source_fn, mask_fn, sk
 				continue
 		current_data_slice = source_array[i,:,:]
 		current_mask_slice = mask_array[i,:,:]
-		slice_index = i + 1
+		slice_index = (i + 1)/source_array.shape[0]
 		notes = 'None'
 		try:
 			no_connected_components = connected_components_count(current_mask_slice)
@@ -434,7 +437,9 @@ def quality_check(source_array, mask_array,qc_classifier, source_fn, mask_fn, sk
 									otsu_snr, otsu_std, binary_edge_fraction, binary_edge_cc_count,
 									chamfer_dist, max_loc_horiz, max_loc_vert, otsu_size_frac,
 									roundness, elongation]).reshape(1,-1)
-			prediction = (qc_classifier.predict_proba(feature_array)[:,1] >= 0.70).astype(bool)
+			prediction = (qc_classifier.predict_proba(feature_array)[:,1] >= 0.69).astype(bool)
+			print(feature_array)
+			print(prediction)
 			if prediction == False:
 				notes = 'Model Classified'		
 		except:
@@ -442,13 +447,23 @@ def quality_check(source_array, mask_array,qc_classifier, source_fn, mask_fn, sk
 			prediction = False
 
 		if prediction == False:
-			slice_df = {'filename': str(source_fn), 'slice_index': str(slice_index), 'notes': str(notes)}
+			slice_df = {'filename': str(source_fn), 'slice_index': str(slice_index*source_array.shape[0]), 'notes': str(notes)}
 			file_quality_check = file_quality_check.append(slice_df, ignore_index=True)
+
+		if qc_debug == True:
+			qc_feature_list.append(feature_array)
+
 
 	file_quality_check = pd.merge(file_quality_check, stack_quality_check, 
 								  on=['filename','slice_index'],
 								  suffixes=['_1','_2'],
 								  how='outer')
+
+	if qc_debug == True:
+		qc_feature_array = np.vstack(qc_feature_list)
+		with open('qc_feature_array_uf.npy', 'wb') as f:
+			print('Saving Full Calculated Feature List for Quality Checking')
+			np.save(f, qc_feature_array)
 
 	return file_quality_check
 

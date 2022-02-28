@@ -82,7 +82,12 @@ def brain_seg_prediction(
 
     # Fill small holes in binary mask
     binary_hole_filler = sitk.BinaryFillholeImageFilter()
-    resampled_label_map = binary_hole_filler.Execute(resampled_label_map)
+    binary_inversion_filter = sitk.InvertIntensityImageFilter()
+    binary_inversion_filter.SetMaximum(1)
+    missing_hole_fill = binary_hole_filler.Execute(resampled_label_map)
+    missing_hole_fill_invert = binary_inversion_filter.Execute(missing_hole_fill)
+    isolated_brain_invert = binary_hole_filler.Execute(missing_hole_fill_invert)
+    resampled_label_map = binary_inversion_filter.Execute(isolated_brain_invert)
 
     sitk.WriteImage(resampled_label_map, output_path)
     sitk.WriteImage(
