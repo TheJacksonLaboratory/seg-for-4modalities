@@ -1,28 +1,149 @@
-from .corrections import y_axis_correction
-from .corrections import z_axis_correction
-from ..scripts.rbm import brain_seg_prediction
-from .quality import quality_check
-from ..scripts.original_seg import brain_seg_prediction_original
-from .utils import get_suffix
-from contextlib import redirect_stdout
-import numpy as np
-import SimpleITK as sitk
+# author: Zachary Frohock
+'''
+Functions that wrap segmentation workflow
+
+segmentation(...) determines file I/O structure
+
+segment_brain(...) handles inference workflows
+'''
+
 import glob
 import os
-from scipy.spatial import ConvexHull
-from PIL import Image, ImageDraw
-from pathlib import PurePath
 import joblib
 import shutil
-import SimpleITK as sitk
-import argparse
-import glob
 import sys
-import pprint
+import time
 import numpy as np
 import pandas as pd
-import os
-import time
+import SimpleITK as sitk
+from pathlib import PurePath
+from .corrections import y_axis_correction, z_axis_correction
+from ..scripts.rbm import brain_seg_prediction
+from ..scripts.original_seg import brain_seg_prediction_original
+from .quality import quality_check
+from .utils import get_suffix, write_backup_image, image_slice_4d, clip_outliers
+
+
+def segmentation(opt,
+                 voxsize,
+                 pre_paras,
+                 keras_paras):
+    quality_check = pd.DataFrame(columns=['filename', 'slice_index', 'notes'])
+    input_path_obj = PurePath(opt.input)
+
+    if opt.input_type == 'dataset':
+        qc_log_path = str(opt.input + '/segmentation_log.txt')
+        mouse_dirs = sorted(listdir_nohidden(opt.input))
+        print('Working with the following dataset directory: ' + opt.input)
+        print('It contains the following subdirectories \
+              corresponding to individual mice: \n' +
+              str(mouse_dirs))
+        sys.stderr = open(qc_log_path, 'w')
+        for mouse_dir in mouse_dirs:
+            modality_dirs = sorted(listdir_nohidden(mouse_dir))
+            print('For the mouse ' +
+                  str(mouse_dir) +
+                  ' I see the following modality folders: \n ' +
+                  str(modality_dirs))
+            for modality_dir in modality_dirs:
+                source_fn = glob.glob(os.path.join(modality_dir, '*'))[0]
+                print('Starting Inference on file: ' + source_fn)
+                quality_check_temp = segment_brain(source_fn,
+                                                   opt.z_axis_correction,
+                                                   opt.y_axis_correction,
+                                                   voxsize,
+                                                   pre_paras,
+                                                   keras_paras,
+                                                   opt.new_spacing,
+                                                   opt.normalization_mode,
+                                                   opt.constant_size,
+                                                   opt.use_frac_patch,
+                                                   opt.likelihood_categorization,
+                                                   opt.y_axis_mask,
+                                                   opt.frac_patch,
+                                                   opt.frac_stride,
+                                                   opt.quality_checks,
+                                                   opt.qc_skip_edges,
+                                                   opt.target_size)
+                quality_check = quality_check.append(quality_check_temp,
+                                                     ignore_index=True)
+        sys.stderr.close()
+        sys.stderr = sys.__stderr__
+
+    elif opt.input_type == 'directory':
+        print('Working with the following directory: ' + opt.input)
+        print('It contains the following data files: \n' +
+              str(listdir_nohidden(opt.input)))
+        source_files = listdir_nohidden(opt.input)
+        qc_log_path = str(opt.input + '/segmentation_log.txt')
+        sys.stderr = open(qc_log_path, 'w')
+        for source_fn in source_files:
+            print('Starting Inference on file: ' + source_fn)
+            quality_check_temp = segment_brain(source_fn,
+                                               opt.z_axis_correction,
+                                               opt.y_axis_correction,
+                                               voxsize,
+                                               pre_paras,
+                                               keras_paras,
+                                               opt.new_spacing,
+                                               opt.normalization_mode,
+                                               opt.constant_size,
+                                               opt.use_frac_patch,
+                                               opt.likelihood_categorization,
+                                               opt.y_axis_mask,
+                                               opt.frac_patch,
+                                               opt.frac_stride,
+                                               opt.quality_checks,
+                                               opt.qc_skip_edges,
+                                               opt.target_size)
+            quality_check = quality_check.append(quality_check_temp,
+                                                 ignore_index=True)
+        sys.stderr.close()
+        sys.stderr = sys.__stderr__
+
+    elif opt.input_type == 'file':
+        if opt.skip_preprocessing is True:  # Debug option, currently disabled
+            print('Skipping all preprocessing steps...')
+            if opt.input is not None:
+                output_filename = str(input_path_obj.with_name(input_path_obj.stem.split('.')[0] +
+                                                               '_mask' +
+                                                               ''.join(input_path_obj.suffixes)))
+                brain_seg_prediction_original(opt.input,
+                                              output_filename,
+                                              voxsize,
+                                              pre_paras,
+                                              keras_paras,
+                                              opt.likelihood_categorization)
+                exit()
+        print('Performing inference on the following file: ' + str(opt.input))
+        source_fn = opt.input
+        print('Starting Inference on file: ' + source_fn)
+        qc_log_path = str(input_path_obj.parents[0]) + '/segmentation_log.txt'
+        sys.stderr = open(qc_log_path, 'w')
+        quality_check_temp = segment_brain(source_fn,
+                                           opt.z_axis_correction,
+                                           opt.y_axis_correction,
+                                           voxsize,
+                                           pre_paras,
+                                           keras_paras,
+                                           opt.new_spacing,
+                                           opt.normalization_mode,
+                                           opt.constant_size,
+                                           opt.use_frac_patch,
+                                           opt.likelihood_categorization,
+                                           opt.y_axis_mask,
+                                           opt.frac_patch,
+                                           opt.frac_stride,
+                                           opt.quality_checks,
+                                           opt.qc_skip_edges,
+                                           opt.target_size)
+        sys.stderr.close()
+        sys.stderr = sys.__stderr__
+        quality_check = quality_check.append(quality_check_temp,
+                                             ignore_index=True)
+
+    return quality_check
+
 
 def segment_brain(source_fn,
                   z_axis_correction_check,
@@ -43,50 +164,19 @@ def segment_brain(source_fn,
                   target_size):
 
     inference_start_time = time.time()
-
     suffix = get_suffix(z_axis_correction_check, y_axis_correction_check)
-    # print(suffix)
 
-    # Write a copy of the source image to original_fn_original.nii
-    source_path_obj = PurePath(source_fn)
-    original_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + '_backup' + ''.join(source_path_obj.suffixes)))
-    #original_fn = Path(source_fn).stem.split('.')[0] + '_backup.nii'
-    shutil.copyfile(source_fn, original_fn)
-
-    # Do some very basic data preparation
-    source_img = sitk.ReadImage(source_fn)
-    source_spacing = source_img.GetSpacing()
-    # Check for images with an extra dimension (NODDI). If they have one,
-    # use only the 8th frame
-    dim_check_array = sitk.GetArrayFromImage(source_img)
-    if len(dim_check_array.shape) > 3:
-        inference_array = dim_check_array[7, :, :, :]
-        inference_img = sitk.GetImageFromArray(inference_array)
-        inference_img.SetSpacing(source_spacing)
-        sitk.WriteImage(inference_img, source_fn)
-    # Clip data points that are far above the mean
-    source_image = sitk.ReadImage(source_fn)
-    source_array = sitk.GetArrayFromImage(source_image)
-    source_shape = source_array.shape
-    clip_value = np.mean(source_array) * 20
-    replace_value = np.median(source_array)
-    source_array = np.where(
-        source_array > clip_value,
-        replace_value,
-        source_array)
-    source_array = np.reshape(source_array, source_shape)
-    source_image = sitk.GetImageFromArray(source_array)
-    source_image.SetSpacing(source_spacing)
-    #source_image = sitk.Cast(source_image, sitk.sitk.UInt8)
-    sitk.WriteImage(source_image, source_fn)
+    # Basic image preprocessing. Unmodified image saved: {source}_original.nii
+    source_path_obj, original_fn = write_backup_image(source_fn)
+    image_slice_4d(source_fn, best_frame=7)
+    clip_outliers(source_fn, clip_threshold=20)
 
     if z_axis_correction_check == 'True':
-        # Run z-axis correction, producing modified data
-        z_axis_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + '_z_axis' + ''.join(source_path_obj.suffixes)))
-        z_axis_path_obj = PurePath(z_axis_fn)
-        #z_axis_fn = Path(source_fn).stem.split('.')[0] + '_z_axis.nii'
-        # print(z_axis_fn)
         print('Performing z-axis correction')
+        z_axis_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] +
+                                                  '_z_axis' +
+                                                  ''.join(source_path_obj.suffixes)))
+        z_axis_path_obj = PurePath(z_axis_fn)
         if not use_frac_patch:
             if not constant_size:
                 z_axis_correction(
@@ -135,45 +225,39 @@ def segment_brain(source_fn,
                     frac_patch=frac_patch,
                     frac_stride=frac_stride,
                     likelihood_categorization=likelihood_categorization)
+
     if y_axis_correction_check == 'True':
-        # Run y-axis correction, producing modified data
         print('Performing y-axis correction to source data')
-        y_axis_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + '_n4b' + ''.join(source_path_obj.suffixes)))
-        #y_axis_fn = Path(source_fn).stem.split('.')[0] + '_n4b.nii'
-        # print(y_axis_fn)
-        y_axis_correction(
-            source_fn,
-            y_axis_fn,
-            voxsize,
-            pre_paras,
-            keras_paras,
-            new_spacing,
-            y_axis_mask)
+        y_axis_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] +
+                                                  '_n4b' +
+                                                  ''.join(source_path_obj.suffixes)))
+        y_axis_correction(source_fn,
+                          y_axis_fn,
+                          voxsize,
+                          pre_paras,
+                          keras_paras,
+                          new_spacing,
+                          y_axis_mask)
 
         if z_axis_correction_check == 'True':
             print('Performing y-axis correction to z-axis corrected data')
-            # If we have already done a z-axis correction, do a y axis correction on that file too.
-            # The file created with n4b alone is simply intended to be a
-            # check
-            z_axis_n4b_fn = str(z_axis_path_obj.with_name(z_axis_path_obj.stem.split('.')[0] + '_n4b' + ''.join(z_axis_path_obj.suffixes)))
-            #z_axis_n4b_fn = Path(z_axis_fn).stem.split('.')[0] + '_n4b.nii'
-            # print(z_axis_n4b_fn)
-            y_axis_correction(
-                z_axis_fn,
-                z_axis_n4b_fn,
-                voxsize,
-                pre_paras,
-                keras_paras,
-                new_spacing,
-                y_axis_mask)
+            z_axis_n4b_fn = str(z_axis_path_obj.with_name(z_axis_path_obj.stem.split('.')[0] +
+                                                          '_n4b' +
+                                                          ''.join(z_axis_path_obj.suffixes)))
+            y_axis_correction(z_axis_fn,
+                              z_axis_n4b_fn,
+                              voxsize,
+                              pre_paras,
+                              keras_paras,
+                              new_spacing,
+                              y_axis_mask)
 
-    # Do the final inference
-    final_inference_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + suffix + ''.join(source_path_obj.suffixes)))
-    #final_inference_fn = Path(source_fn).stem.split('.')[0] + suffix + '.nii'
-    # print(final_inference_fn)
-    mask_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] + '_mask' + ''.join(source_path_obj.suffixes)))
-    #mask_fn = Path(source_fn).stem.split('.')[0] + '_mask.nii'
-    # print(final_inference_fn)
+    final_inference_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] +
+                                                       suffix +
+                                                       ''.join(source_path_obj.suffixes)))
+    mask_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] +
+                                            '_mask' +
+                                            ''.join(source_path_obj.suffixes)))
     if not use_frac_patch:
         if not constant_size:
             brain_seg_prediction(

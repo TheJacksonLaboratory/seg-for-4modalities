@@ -290,6 +290,7 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
+
 def input_logging(opt, input_command):
     if opt.input_type == 'dataset':
         input_log_path = str(opt.input + '/input_log.txt')
@@ -316,3 +317,62 @@ def input_logging(opt, input_command):
             input_log.write(str(opt)[10:-1].split(',')[i].strip())
             input_log.write('\n')
 
+
+def save_quality_check(quality_check,
+                       input_type,
+                       input_path):
+    if len(quality_check) > 0:
+        input_path_obj = PurePath(input_path)
+        if input_type == 'file':
+            print('Saving quality check file to: ' +
+                  str(input_path_obj.parents[0]) +
+                  '/quality_check.csv')
+            quality_check.to_csv(str(input_path_obj.parents[0]) +
+                                 '/quality_check.csv',
+                                 index=False)
+        else:
+            print('Saving quality check file to: '
+                  + input_path +
+                  'quality_check.csv')
+            quality_check.to_csv(input_path +
+                                 '/quality_check.csv',
+                                 index=False)
+
+
+def write_backup_image(source_fn):
+    source_path_obj = PurePath(source_fn)
+    original_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] +
+                                                '_original' +
+                                                ''.join(source_path_obj.suffixes)))
+    shutil.copyfile(source_fn, original_fn)
+
+    return source_path_obj, original_fn
+
+
+def image_slice_4d(source_fn,
+                   best_frame):
+    source_img = sitk.ReadImage(source_fn)
+    source_spacing = source_img.GetSpacing()
+    source_array = sitk.GetArrayFromImage(source_img)
+    if len(source_array.shape) > 3:
+        inference_array = source_array[best_frame, :, :, :]
+        inference_img = sitk.GetImageFromArray(inference_array)
+        inference_img.SetSpacing(source_spacing)
+        sitk.WriteImage(inference_img, source_fn)
+
+
+def clip_outliers(source_fn, clip_threshold):
+    source_image = sitk.ReadImage(source_fn)
+    source_spacing = source_image.GetSpacing()
+    source_array = sitk.GetArrayFromImage(source_image)
+    source_shape = source_array.shape
+    clip_value = np.mean(source_array) * clip_threshold
+    replace_value = np.median(source_array)
+    source_array = np.where(
+        source_array > clip_value,
+        replace_value,
+        source_array)
+    source_array = np.reshape(source_array, source_shape)
+    source_image = sitk.GetImageFromArray(source_array)
+    source_image.SetSpacing(source_spacing)
+    sitk.WriteImage(source_image, source_fn)
