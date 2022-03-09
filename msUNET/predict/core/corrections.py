@@ -2,7 +2,7 @@ import shutil
 import SimpleITK as sitk
 import numpy as np
 import matplotlib.pyplot as plt
-from ..scripts.rbm import brain_seg_prediction
+from ..scripts.segmentation import brain_seg_prediction
 
 
 def z_axis_correction(

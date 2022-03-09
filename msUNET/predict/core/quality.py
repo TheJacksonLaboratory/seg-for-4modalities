@@ -1,15 +1,18 @@
-import sklearn
+# author: Zachary Frohock
+'''
+Functions pertaining to post-inference quality checks
+quality_check() is the primary function handling qc
+'''
+
+import sys
+import os
 import numpy as np
 import pandas as pd
-import scipy
-import sys, os
-import matplotlib.pyplot as plt
 import SimpleITK as sitk
-import math
 from PIL import ImageDraw, Image
 from scipy.spatial import ConvexHull
-import joblib
 from contextlib import contextmanager
+
 
 @contextmanager
 def suppress_stdout():

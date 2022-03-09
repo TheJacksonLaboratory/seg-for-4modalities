@@ -6,17 +6,12 @@ See User Guide for Inference for detailed information about inputs/outputs
 '''
 
 import os
-from predict.core.utils import str2bool, listdir_nohidden, input_logging, save_quality_check
-from predict.core.segmentation import segmentation
-from predict.scripts.rbm import brain_seg_prediction
-from predict.core.quality import quality_check
-from predict.scripts.original_seg import brain_seg_prediction_original
-from pathlib import PurePath
+from predict.core.utils import str2bool
+from predict.core.utils import input_logging, save_quality_check
+from predict.core.workflows import segment_file_structure_workflow
 import SimpleITK as sitk
 import argparse
-import glob
 import sys
-import pandas as pd
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 sitk.ProcessObject_SetGlobalWarningDisplay(False)
@@ -213,10 +208,10 @@ keras_paras.model_path = './msUNET/predict/scripts/' + opt.model
 
 voxsize = 0.1
 
-quality_check_results = segmentation(opt,
-                                     voxsize,
-                                     pre_paras,
-                                     keras_paras)
+quality_check_results = segment_file_structure_workflow(opt,
+                                               voxsize,
+                                               pre_paras,
+                                               keras_paras)
 
 save_quality_check(quality_check_results,
                    opt.input_type,
