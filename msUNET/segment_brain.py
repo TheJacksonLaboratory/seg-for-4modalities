@@ -170,6 +170,24 @@ parser.add_argument(  # Deprecated debug option
           and use original segmentation algorithm",
     type=str2bool,
     default=False)
+parser.add_argument(
+    "-sf",
+    "--segmentation_frame",
+    help="If the input image is 4D, this value selects \
+          the frame on which inference should be run",
+    type=int,
+    default=0)
+parser.add_argument(
+    "-fl",
+    "--frame_location",
+    help="Whether frames are the first or last index \
+          in the shape of a scan",
+    type=str,
+    choices=['frame_first',
+             'frame_last'],
+    default='frame_first')
+
+# TODO: Add input checks and enforcement
 
 opt = parser.parse_args()
 input_logging(opt, sys.argv)
@@ -209,9 +227,9 @@ keras_paras.model_path = './msUNET/predict/scripts/' + opt.model
 voxsize = 0.1
 
 quality_check_results = segment_file_structure_workflow(opt,
-                                               voxsize,
-                                               pre_paras,
-                                               keras_paras)
+                                                        voxsize,
+                                                        pre_paras,
+                                                        keras_paras)
 
 save_quality_check(quality_check_results,
                    opt.input_type,

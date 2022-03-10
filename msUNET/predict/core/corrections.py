@@ -1,3 +1,8 @@
+# author: Zachary Frohock
+'''
+Functions handling pre-inference image processing
+'''
+
 import shutil
 import SimpleITK as sitk
 import numpy as np

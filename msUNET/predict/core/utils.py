@@ -1,3 +1,8 @@
+# author: Zachary Frohock
+'''
+Support functions for brain segmentation
+'''
+
 import SimpleITK as sitk
 import glob
 import os
@@ -14,6 +19,7 @@ import pprint
 import numpy as np
 import pandas as pd
 import os
+
 
 def min_max_normalization(img, normalization_mode='by_img'):
     # Function that normalizes input data.
@@ -350,12 +356,16 @@ def write_backup_image(source_fn):
 
 
 def image_slice_4d(source_fn,
-                   best_frame):
+                   best_frame,
+                   frame_location):
     source_img = sitk.ReadImage(source_fn)
     source_spacing = source_img.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_img)
     if len(source_array.shape) > 3:
-        inference_array = source_array[best_frame, :, :, :]
+        if frame_location == 'frame_first':
+            inference_array = source_array[best_frame, :, :, :]
+        else:
+            inference_array = source_array[:, :, :, best_frame]
         inference_img = sitk.GetImageFromArray(inference_array)
         inference_img.SetSpacing(source_spacing)
         sitk.WriteImage(inference_img, source_fn)
@@ -376,3 +386,15 @@ def clip_outliers(source_fn, clip_threshold):
     source_image = sitk.GetImageFromArray(source_array)
     source_image.SetSpacing(source_spacing)
     sitk.WriteImage(source_image, source_fn)
+
+
+def remove_small_holes_and_points(img):
+    binary_hole_filler = sitk.BinaryFillholeImageFilter()
+    binary_inversion_filter = sitk.InvertIntensityImageFilter()
+    binary_inversion_filter.SetMaximum(1)
+    missing_hole_fill = binary_hole_filler.Execute(img)
+    missing_hole_fill_invert = binary_inversion_filter.Execute(missing_hole_fill)
+    isolated_brain_invert = binary_hole_filler.Execute(missing_hole_fill_invert)
+    holes_filled_points_removed = binary_inversion_filter.Execute(isolated_brain_invert)
+
+    return holes_filled_points_removed
