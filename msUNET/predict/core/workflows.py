@@ -254,10 +254,6 @@ def segment_image_workflow(source_fn,
             ''.join(source_path_obj.suffixes)))
         y_axis_correction(source_fn,
                           y_axis_fn,
-                          voxsize,
-                          pre_paras,
-                          keras_paras,
-                          new_spacing,
                           y_axis_mask)
 
         if z_axis_correction_check == 'True':
@@ -268,10 +264,6 @@ def segment_image_workflow(source_fn,
                 ''.join(z_axis_path_obj.suffixes)))
             y_axis_correction(z_axis_fn,
                               z_axis_n4b_fn,
-                              voxsize,
-                              pre_paras,
-                              keras_paras,
-                              new_spacing,
                               y_axis_mask)
 
     final_inference_fn = str(source_path_obj.with_name(

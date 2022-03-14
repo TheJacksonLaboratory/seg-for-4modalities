@@ -3,60 +3,43 @@
 Support functions for brain segmentation
 '''
 
-import SimpleITK as sitk
 import glob
 import os
+import SimpleITK as sitk
+import argparse
+import shutil
+import numpy as np
 from scipy.spatial import ConvexHull
 from PIL import Image, ImageDraw
 from pathlib import PurePath
-import joblib
-import shutil
-import SimpleITK as sitk
-import argparse
-import glob
-import sys
-import pprint
-import numpy as np
-import pandas as pd
-import os
+from matplotlib import pyplot as plt
 
 
 def min_max_normalization(img, normalization_mode='by_img'):
-    # Function that normalizes input data.
-    # INPUTS
-    # img: 3D numpy array containing image data for a single MRI scan
-    # by_slice: Boolean dictating whether normalization should be done by-image (0) or by slice (1)
-    # By slice normalization generally eliminates the need for z-axs correction. Ensure that the model
-    # you are planning to use has been trained using data that has been normalized in the same way.
-    # OUTPUTS
-    # new_img: Input image normalized to range [0,1]
 
-    # By image normalization
+    new_img = img.copy()
+    new_img = new_img.astype(np.float32)
+
     if normalization_mode == 'by_img':
-        new_img = img.copy()
-        new_img = new_img.astype(np.float32)
-
         min_val = np.min(new_img)
         max_val = np.max(new_img)
         new_img = (np.asarray(new_img).astype(
             np.float32) - min_val) / (max_val - min_val)
-
-    # By slice normalization
-    if normalization_mode == 'by_slice':
-        new_img = img.copy()
-        new_img = img.astype(np.float32)
+    elif normalization_mode == 'by_slice':
         for slice_index in range(0, new_img.shape[0]):
             min_val = np.amin(new_img[slice_index, :, :])
             max_val = np.amax(new_img[slice_index, :, :])
             new_img[slice_index, :, :] = (new_img[slice_index, :, :].astype(
                 np.float32) - min_val) / (max_val - min_val)
+    else:
+        raise ValueError("Normalization Mode is not correctly specified, \
+                          use either 'by_img' or 'by_slice'")
 
     return new_img
 
 
 def dim_2_categorical(label, num_class):
-    # Deprecated function intended to assist in conversion of data with
-    # additional input channels
+
     dims = label.ndim
     if dims == 2:
         col, row = label.shape
@@ -79,24 +62,32 @@ def resample_img(
         interpolator=sitk.sitkLinear,
         target_size=None,
         revert=False):
-    # Function that resamples input images for compatibility with inference model
-    # INPTS
-    # imgobj: SimpleITK image object corresponding to raw data
-    # new_spacing: Muliplicative factor by which image dimensions should be multiplied by. Serves to
-    # change image size such that the patch dimension on which the network was trained fits reasonably
-    # into the input image. Of the form [horizontal_spacing, vertical_spacing, interlayer_spacing].
-    # If images are large, should have elements > 1
-    # If images are small should have elements < 1
-    # Interpolator: function used to interpolate in the instance new_spacing != [1,1,1]. Default is nearest
-    # neighbor as to not introduce new values
-    # New_size: declared size for new images. If left as None will calculate the new size automatically
-    # baseon on new spacing and old image dimensions/spacing
-    # OUTPUTS
-    # resampled_imgobj: SimpleITK image object resampled in the desired manner
+    '''
+    TODO: Rewrite for robustness to different dimension orders
+
+    Function that resamples input images for compatibility with inference model
+    INPUTS
+    imgobj: SimpleITK image object corresponding to raw data
+    new_spacing: Muliplicative factor by which image dimensions should be
+    multiplied by. Serves to change image size such that the patch dimension on
+    which the network was trained fits reasonably into the input image. Of the
+    form [horizontal_spacing, vertical_spacing, interlayer_spacing].
+    If images are large, should have elements > 1
+    If images are small should have elements < 1
+    Interpolator: function used to interpolate in the instance
+    new_spacing != [1,1,1]. Default is nearest neighbor as to not introduce
+    new values.
+    New_size: declared size for new images. If left as None will calculate
+    the new size automatically
+    baseon on new spacing and old image dimensions/spacing
+    OUTPUTS
+    resampled_imgobj: SimpleITK image object resampled in the desired manner
+    '''
     resample = sitk.ResampleImageFilter()
     resample.SetInterpolator(interpolator)
     resample.SetOutputDirection(imgobj.GetDirection())
     resample.SetOutputOrigin(imgobj.GetOrigin())
+
     if not revert:
         if target_size is None:
             orig_img_spacing = np.array(imgobj.GetSpacing())
@@ -127,7 +118,6 @@ def resample_img(
             new_spacing[1] = orig_img_spacing[1] / spacing_ratio_2  # orig 2
             new_spacing[2] = orig_img_spacing[2]
             resample.SetOutputSpacing(new_spacing)
-
             # Correct target size image dimensions
             target_size_final = [0, 0, 0]
             target_size_final[0] = target_size[1]
@@ -141,24 +131,29 @@ def resample_img(
     resample.SetSize(np.array(target_size_final, dtype='int').tolist())
 
     resampled_imgobj = resample.Execute(imgobj)
+
     return resampled_imgobj
 
 
 def listdir_nohidden(path):
-    # Function that lists the full paths of files and directories in path.
-    # Does not list hidden files.
+    '''
+    Function that lists the full paths of files and directories in path.
+    Does not list hidden files.
+    '''
     return glob.glob(os.path.join(path, '*'))
 
 
 def get_suffix(z_axis, y_axis):
-    # Function that determines the suffix to be used in finding the file in a modality folder on which
-    # final inference is to be run
-    # INPUTS
-    # z_axis: Was z-axis correction used, string 'True' if so
-    # y_axis: Was y_axis correction used, string 'True' if so
-    # OUTPUTS
-    # suffix: file suffix to be appended to source data filename for final
-    # inference
+    '''
+    Function that determines the suffix to be used in finding the file in
+    a modality folder on which final inference is to be run
+    INPUTS
+    z_axis: Was z-axis correction used, string 'True' if so
+    y_axis: Was y_axis correction used, string 'True' if so
+    OUTPUTS
+    suffix: file suffix to be appended to source data filename for final
+    inference
+    '''
     suffix = ''
     if z_axis == 'True':
         suffix = '_z_axis'
@@ -167,88 +162,10 @@ def get_suffix(z_axis, y_axis):
     return suffix
 
 
-def low_snr_check(source_array, source_fn, low_snr_threshold):
-    # Function that determines whether a raw data slice should be flagged for manual review due to a low
-    # signal to noise ratio. Does so by comparing mean intensity in center of image to mean intensity
-    # in corners. Assumes that the brain is roughly centered in the image
-    # INPUTS
-    # source_array: numpy array corresponding to entire MRI image scan
-    # source_fn: full path to source file
-    # low_snr_threshold: Multiplicative factor below which slice will be flagged
-    # OUTPUTS
-    # snr_check_list: list of slices and the corresponding files that contain them that have been flagged for
-    # TODO: Use aim 1 masks to define 'signal' region instead of assuming
-    # circle at center
-    snr_check_list = []
-    for slice_index in range(0, source_array.shape[0]):
-        current_slice = np.array(source_array[slice_index, :, :])
-        i, j = np.indices(current_slice.shape)
-        # Grab the mean of a 3x3 circle in the center of the image
-        center_mean = np.array(current_slice[((i -
-                                               (current_slice.shape[0] //
-                                                2))**2 < 9) & ((j -
-                                                                (current_slice.shape[1] //
-                                                                 2))**2 < 9)]).mean()
-        k, l = 3, 3
-        # Grab the mean of a 3x3 box on the upper left hand corner of the image
-        edge_mean = current_slice[max(
-            0, k - 3):k + 3, max(0, l - 3):l + 3].mean()
-        # Compare the center mean (brain) to the edge mean (background). If
-        # they are very different, warn
-        if center_mean <= edge_mean * low_snr_threshold:
-            snr_check_list.append(
-                source_fn + ' -- Slice: ' + str(slice_index + 1) + ' -- LOW SNR WARNING')
-
-    return snr_check_list
-
-
-def mask_area_check(mask_array, source_fn, source_array):
-    # Function that determines whether a raw data slice should be flagged for manual review due to either a
-    # low or high mask area. If the percentage of pixels in classified as brain in a given slice is outside
-    # the interval [0.04,0.8], a flag will be raised.
-    low_mask_area_check_list = []
-    high_mask_area_check_list = []
-    for slice_index in range(0, mask_array.shape[0]):
-        current_slice = np.array(mask_array[slice_index, :, :])
-        current_slice_source = np.array(source_array[slice_index, :, :])
-        total_pixels = current_slice.size
-        mask_pixels = (np.asarray(current_slice) > 0).sum()
-        source_data_pixels = (
-            np.asarray(current_slice_source) > current_slice_source.mean()).sum()
-        mask_ratio = mask_pixels / total_pixels
-        source_data_ratio = source_data_pixels / total_pixels
-        if mask_ratio < 0.04 and source_data_ratio > 0.04:
-            low_mask_area_check_list.append(
-                source_fn + ' -- Slice: ' + str(slice_index + 1) + ' -- LOW MASK AREA WARNING')
-        if mask_ratio > 0.6 and source_data_ratio < 0.8:
-            high_mask_area_check_list.append(
-                source_fn + ' -- Slice: ' + str(slice_index + 1) + ' -- HIGH MASK AREA WARNING')
-
-    return low_mask_area_check_list, high_mask_area_check_list
-
-
-def intermediate_likelihood_check(likelihood_array, source_fn, source_array):
-    # Function that determines whether a raw data slice should be flagged for manual review due to a higher
-    # than expected percentage of pixels having a score between 0.1 and 0.75. If more than 3% of a slice's
-    # pixels have score values in this intermediate range, the slice is
-    # flagged.
-    high_int_likelihood_check = []
-    for slice_index in range(0, likelihood_array.shape[0]):
-        current_slice = np.array(likelihood_array[slice_index, :, :])
-        total_pixels = current_slice.size
-        confident_mask_pixels = (current_slice > 0.75).sum()
-        confident_back_pixels = (current_slice < 0.1).sum()
-        intermediate_pixels = total_pixels - confident_back_pixels - confident_mask_pixels
-        intermediate_pixel_ratio = intermediate_pixels / total_pixels
-        if intermediate_pixel_ratio > 0.03:
-            high_int_likelihood_check.append(
-                source_fn + ' -- Slice: ' + str(slice_index + 1) + ' -- LOW PREDICTION BORDER CONFIDENCE')
-
-    return high_int_likelihood_check
-
-
 def convex_hull_image(data):
-    # Function that calculates and draws the convex hull for a 2D binary image
+    '''
+    Function that calculates and draws the convex hull for a 2D binary image
+    '''
     region = np.argwhere(data)
     hull = ConvexHull(region)
     verts = [(region[v, 0], region[v, 1]) for v in hull.vertices]
@@ -259,34 +176,11 @@ def convex_hull_image(data):
     return mask.T
 
 
-def solidity_check(mask_array, source_fn, source_array):
-    # Function that determines whether a mask should be flagged for manual review due to having a low solidity.
-    # For each slice, the percentage of pixels classified as brain is compared to the number of pixels
-    # contained in the convex hull containing those pixels. If the count of pixels in the brain is less than
-    # 90% of the count in the convex hull, a flag is thrown.
-    solidity_check = []
-    for slice_index in range(0, mask_array.shape[0]):
-        current_slice = np.asarray(mask_array[slice_index, :, :])
-        # Convex hull operation fails if there are fewer than 3 pixels classified as brain
-        # In this case, this check is not relevant. Zero-pixel masks are caught
-        # by other checks.
-        try:
-            current_slice_convex_hull = convex_hull_image(current_slice)
-        except BaseException:
-            current_slice_convex_hull = current_slice
-        total_pixels = current_slice.size
-        mask_pixels = (current_slice == 1).sum()
-        convex_hull_pixels = (current_slice_convex_hull == 1).sum()
-        slice_solidity = mask_pixels / convex_hull_pixels
-        if slice_solidity < 0.9:
-            solidity_check.append(
-                source_fn + ' -- Slice: ' + str(slice_index + 1) + ' -- LOW MASK SOLIDITY')
-    return solidity_check
-
-
 def str2bool(v):
-    # A function that converts a collection of possible input values corresponding to True and False from
-    # strings too booleans
+    '''
+    A function that converts a collection of possible input values
+    corresponding to True and False from strings too booleans
+    '''
     if isinstance(v, bool):
         return v
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
@@ -294,10 +188,12 @@ def str2bool(v):
     elif v.lower() in ('no', 'false', 'f', 'n', '0'):
         return False
     else:
-        raise argparse.ArgumentTypeError('Boolean value expected.')
+        raise argparse.ArgumentTypeError("Unable to coerce input to \
+            boolean. Try 't/f', 'y/n', '1/0', etc.")
 
 
 def input_logging(opt, input_command):
+
     if opt.input_type == 'dataset':
         input_log_path = str(opt.input + '/input_log.txt')
     elif opt.input_type == 'directory':
@@ -305,6 +201,9 @@ def input_logging(opt, input_command):
     elif opt.input_type == 'file':
         input_path_obj = PurePath(opt.input)
         input_log_path = str(input_path_obj.parents[0]) + '/input_log.txt'
+    else:
+        raise ValueError("Input type incorrectly specified, choose one of \
+            'dataset', 'directory', or 'file'")
 
     with open(input_log_path, 'w') as input_log:
         input_log.write('Working Directory: ')
@@ -314,7 +213,8 @@ def input_logging(opt, input_command):
         input_log.write('\n')
         input_log.write('Command Passed to segment_brain.py: ')
         input_log.write('\n')
-        input_log.write(" ".join(f"'{i}'" if " " in i else i for i in input_command))
+        input_log.write(" ".join(f"'{i}'" if " " in i
+                        else i for i in input_command))
         input_log.write('\n')
         input_log.write('\n')
         input_log.write('Parameters Used: ')
@@ -327,6 +227,7 @@ def input_logging(opt, input_command):
 def save_quality_check(quality_check,
                        input_type,
                        input_path):
+
     if len(quality_check) > 0:
         input_path_obj = PurePath(input_path)
         if input_type == 'file':
@@ -346,10 +247,12 @@ def save_quality_check(quality_check,
 
 
 def write_backup_image(source_fn):
+
     source_path_obj = PurePath(source_fn)
-    original_fn = str(source_path_obj.with_name(source_path_obj.stem.split('.')[0] +
-                                                '_original' +
-                                                ''.join(source_path_obj.suffixes)))
+    original_fn = str(source_path_obj.with_name(
+        source_path_obj.stem.split('.')[0] +
+        '_original' +
+        ''.join(source_path_obj.suffixes)))
     shutil.copyfile(source_fn, original_fn)
 
     return source_path_obj, original_fn
@@ -358,6 +261,7 @@ def write_backup_image(source_fn):
 def image_slice_4d(source_fn,
                    best_frame,
                    frame_location):
+
     source_img = sitk.ReadImage(source_fn)
     source_spacing = source_img.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_img)
@@ -372,29 +276,73 @@ def image_slice_4d(source_fn,
 
 
 def clip_outliers(source_fn, clip_threshold):
+
     source_image = sitk.ReadImage(source_fn)
     source_spacing = source_image.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_image)
     source_shape = source_array.shape
+
     clip_value = np.mean(source_array) * clip_threshold
     replace_value = np.median(source_array)
+
     source_array = np.where(
         source_array > clip_value,
         replace_value,
         source_array)
+
     source_array = np.reshape(source_array, source_shape)
     source_image = sitk.GetImageFromArray(source_array)
     source_image.SetSpacing(source_spacing)
+
     sitk.WriteImage(source_image, source_fn)
 
 
 def remove_small_holes_and_points(img):
+
     binary_hole_filler = sitk.BinaryFillholeImageFilter()
     binary_inversion_filter = sitk.InvertIntensityImageFilter()
     binary_inversion_filter.SetMaximum(1)
+
     missing_hole_fill = binary_hole_filler.Execute(img)
-    missing_hole_fill_invert = binary_inversion_filter.Execute(missing_hole_fill)
-    isolated_brain_invert = binary_hole_filler.Execute(missing_hole_fill_invert)
-    holes_filled_points_removed = binary_inversion_filter.Execute(isolated_brain_invert)
+    missing_hole_fill_invert = binary_inversion_filter.Execute(
+        missing_hole_fill)
+    isolated_brain_invert = binary_hole_filler.Execute(
+        missing_hole_fill_invert)
+    holes_filled_points_removed = binary_inversion_filter.Execute(
+        isolated_brain_invert)
 
     return holes_filled_points_removed
+
+
+def erode_img_by_slice(img,
+                       kernel_radius):
+    erode_filter = sitk.BinaryErodeImageFilter()
+    erode_filter.SetKernelRadius(kernel_radius)
+
+    img_spacing = img.GetSpacing()
+    img_array = sitk.GetArrayFromImage(img)
+
+    eroded_array = np.zeros(shape=img_array.shape)
+    for i in range(0, img_array.shape[0]):
+        current_layer_img = sitk.GetImageFromArray(img_array[i, :, :])
+        current_layer_img.SetSpacing(img_spacing)
+        current_layer_img = erode_filter.Execute(current_layer_img)
+        eroded_array[i, :, :] = sitk.GetArrayFromImage(current_layer_img)
+
+    eroded_img = sitk.GetImageFromArray(eroded_array)
+    eroded_img.SetSpacing(img_spacing)
+
+    return eroded_array, eroded_img
+
+
+def plot_intensity_comparison(intensity,
+                              corrected_intensity,
+                              filename):
+    plt.figure()
+    plt.plot(intensity)
+    plt.plot(corrected_intensity)
+    plt.xlabel('Slice Index')
+    plt.ylabel('Mean Intensity in Preliminary Mask Region')
+    plt.title('ROI Intensity - Z-Axis Correction')
+    plt.legend(['Source Image', 'Z-Axis Corrected'])
+    plt.savefig(filename)
