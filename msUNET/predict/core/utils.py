@@ -16,7 +16,19 @@ from matplotlib import pyplot as plt
 
 
 def min_max_normalization(img, normalization_mode='by_img'):
-
+    '''
+    Normalized input array, either by image or by slice.
+    Parameters
+    ----------
+    img: array like (_, _, _)
+    normalization_mode: String, either 'by_img' or 'by_slice'
+        If by image, considers the maximum value over the entire stack.
+        If by slice, considers max value over current slice only.
+    Ouputs
+    ----------
+    new_img: array like (_, _, _)
+        Normalized copy of input image
+    '''
     new_img = img.copy()
     new_img = new_img.astype(np.float32)
 
@@ -39,7 +51,18 @@ def min_max_normalization(img, normalization_mode='by_img'):
 
 
 def dim_2_categorical(label, num_class):
-
+    '''
+    Converts label values to integers, one per class
+    Parameters
+    ----------
+    label: array like (_, _, _)
+    num_class: int
+        Number of classes into which segmentation splits pixels
+    Ouputs
+    ----------
+    ex_label: array like (_, _, _)
+        Label map with pixel values corresponding to class
+    '''
     dims = label.ndim
     if dims == 2:
         col, row = label.shape
@@ -64,24 +87,27 @@ def resample_img(
         revert=False):
     '''
     TODO: Rewrite for robustness to different dimension orders
-
     Function that resamples input images for compatibility with inference model
-    INPUTS
-    imgobj: SimpleITK image object corresponding to raw data
-    new_spacing: Muliplicative factor by which image dimensions should be
-    multiplied by. Serves to change image size such that the patch dimension on
-    which the network was trained fits reasonably into the input image. Of the
-    form [horizontal_spacing, vertical_spacing, interlayer_spacing].
-    If images are large, should have elements > 1
-    If images are small should have elements < 1
-    Interpolator: function used to interpolate in the instance
-    new_spacing != [1,1,1]. Default is nearest neighbor as to not introduce
-    new values.
-    New_size: declared size for new images. If left as None will calculate
-    the new size automatically
-    baseon on new spacing and old image dimensions/spacing
+    Parameters:
+        imgobj: array like (_, _, _)
+        SimpleITK image object corresponding to raw data
+    new_spacing: array-like, (_, _, _)
+        Spacing to which an image will be resampled for inference. First two
+        entries correspond to in-slice dimensions, third between slices.
+    Interpolator: sitk interpolator class
+        Function used to interpolate in the instancenew_spacing != [1,1,1].
+        Default is nearest neighbor as to not introduce new values.
+    target_size: array like (_, _, _) or None
+        Dimensions to which all images will be sampled prior to patching.
+        If None, images are not resampled to a constant size, and new_spacing
+        is used to determine image resampling.
+    revert: Bool
+        If False, proceed with resampling as defined by either target_size or
+        new_spacing as appropriate. If True, return resampled images to original
+        dimensions for output.
     OUTPUTS
-    resampled_imgobj: SimpleITK image object resampled in the desired manner
+    resampled_imgobj: array like (_, _, _)
+        SimpleITK image object resampled in the desired manner
     '''
     resample = sitk.ResampleImageFilter()
     resample.SetInterpolator(interpolator)
@@ -139,6 +165,13 @@ def listdir_nohidden(path):
     '''
     Function that lists the full paths of files and directories in path.
     Does not list hidden files.
+    Parameters
+    ----------
+    path: string
+        Path to directory
+    Outputs
+    ----------
+        List of files in directory, less hidden files
     '''
     return glob.glob(os.path.join(path, '*'))
 
@@ -147,12 +180,17 @@ def get_suffix(z_axis, y_axis):
     '''
     Function that determines the suffix to be used in finding the file in
     a modality folder on which final inference is to be run
-    INPUTS
-    z_axis: Was z-axis correction used, string 'True' if so
-    y_axis: Was y_axis correction used, string 'True' if so
-    OUTPUTS
-    suffix: file suffix to be appended to source data filename for final
-    inference
+    Parameters
+    ----------
+    z_axis: String
+        Was z-axis correction used, string 'True' if so
+    y_axis: String
+        Was y_axis correction used, string 'True' if so
+    Outputs
+    ----------
+    suffix: String
+        File suffix to be appended to source data filename for final
+        inference
     '''
     suffix = ''
     if z_axis == 'True':
@@ -162,24 +200,17 @@ def get_suffix(z_axis, y_axis):
     return suffix
 
 
-def convex_hull_image(data):
-    '''
-    Function that calculates and draws the convex hull for a 2D binary image
-    '''
-    region = np.argwhere(data)
-    hull = ConvexHull(region)
-    verts = [(region[v, 0], region[v, 1]) for v in hull.vertices]
-    img = Image.new('L', data.shape, 0)
-    ImageDraw.Draw(img).polygon(verts, outline=1, fill=1)
-    mask = np.array(img)
-
-    return mask.T
-
-
 def str2bool(v):
     '''
     A function that converts a collection of possible input values
     corresponding to True and False from strings too booleans
+    Parameters
+    ----------
+    v: string
+        User input
+    Outputs
+    ----------
+    Bool corresponding to intended user input
     '''
     if isinstance(v, bool):
         return v
@@ -193,7 +224,20 @@ def str2bool(v):
 
 
 def input_logging(opt, input_command):
-
+    '''
+    Function that writed exact command passed to python to file, along with
+    individual parameters
+    Parameters
+    ----------
+    opt: Dictionary
+        Input key-value pairs
+    input_command: String
+        Exact text passed in from command line
+    Outputs
+    ----------
+    input_log
+        Log of input command and parameters; written to disk
+    '''
     if opt.input_type == 'dataset':
         input_log_path = str(opt.input + '/input_log.txt')
     elif opt.input_type == 'directory':
@@ -227,7 +271,20 @@ def input_logging(opt, input_command):
 def save_quality_check(quality_check,
                        input_type,
                        input_path):
-
+    '''
+    Function that saves quality check dataframe to disk
+    Parameters
+    ----------
+    quality_check: Dataframe
+        Structure containing information about slices in need of manual reivew
+    input_type: String
+        Type of input used, 'file', 'dataset', or 'directory'
+    input_path:
+        Path to input
+    Outputs
+    ----------
+    quality_check; written to disk
+    '''
     if len(quality_check) > 0:
         input_path_obj = PurePath(input_path)
         if input_type == 'file':
@@ -247,7 +304,19 @@ def save_quality_check(quality_check,
 
 
 def write_backup_image(source_fn):
-
+    '''
+    Function that writes a copy of unmodified source data to disk
+    Parameters
+    ----------
+    source_fn: String
+        Path to unmodified source data
+    Outputs
+    ----------
+    source_path_obj: Path obj
+        Path to source as a PurePath object
+    original_fn:
+        Filename of source image copy
+    '''
     source_path_obj = PurePath(source_fn)
     original_fn = str(source_path_obj.with_name(
         source_path_obj.stem.split('.')[0] +
@@ -261,7 +330,21 @@ def write_backup_image(source_fn):
 def image_slice_4d(source_fn,
                    best_frame,
                    frame_location):
-
+    '''
+    Function that slices imput 4d images to segment-able 3d images
+    Parameters
+    ----------
+    source_fn: String
+        Path to unmodified source data
+    best_frame: Int
+        Index of B0 frame in 4d stack. 0 indexed
+    frame_location: String 'frame_first' or 'frame_last'
+        For 4d input images, whether the index of the frame is first or last
+    Outputs
+    ----------
+    inference_img
+        3D slice of input 4D image; written to disk
+    '''
     source_img = sitk.ReadImage(source_fn)
     source_spacing = source_img.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_img)
@@ -276,7 +359,18 @@ def image_slice_4d(source_fn,
 
 
 def clip_outliers(source_fn, clip_threshold):
-
+    '''
+    Function that clips pixels with values much above the mean of the image
+    Parameters
+    ----------
+    source_fn: String
+        Path to unmodified source data
+    clip_threshold: Int > 0
+        Multiple of the mean above which pixel values will be clipped
+    Outputs
+    ----------
+    clipped image; written to disk
+    '''
     source_image = sitk.ReadImage(source_fn)
     source_spacing = source_image.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_image)
@@ -298,7 +392,18 @@ def clip_outliers(source_fn, clip_threshold):
 
 
 def remove_small_holes_and_points(img):
-
+    '''
+    Function that removes isolated brain pixels and fills isolated non-
+    brain pixels
+    Parameters
+    ----------
+    img: array like (_, _, _)
+        Sitk object corresponding to input image
+    Output
+    ----------
+    holes_filled_points_removed: array like (_, _, _)
+        Input image will holes filled and isolated points removed
+    '''
     binary_hole_filler = sitk.BinaryFillholeImageFilter()
     binary_inversion_filter = sitk.InvertIntensityImageFilter()
     binary_inversion_filter.SetMaximum(1)
@@ -316,6 +421,21 @@ def remove_small_holes_and_points(img):
 
 def erode_img_by_slice(img,
                        kernel_radius):
+    '''
+    Function that applies an erode filter to an input image by slice
+    Parameters
+    ----------
+    img: array like (_, _, _)
+        Sitk object corresponding to input image
+    kernel_radius: Int > 0
+        Radius of erosion kernel
+    Outputs
+    ----------
+    eroded_array: array like (_, _, _)
+        Numpy array of eroded input image
+    eroded_img: array like (_, _, _)
+        Sitk object of eroded input image
+    '''
     erode_filter = sitk.BinaryErodeImageFilter()
     erode_filter.SetKernelRadius(kernel_radius)
 
@@ -338,6 +458,18 @@ def erode_img_by_slice(img,
 def plot_intensity_comparison(intensity,
                               corrected_intensity,
                               filename):
+    '''
+    Function that plots intensity of ROI before and after z-axis corrections
+    Parameters
+    ----------
+    intensity: array like (_, )
+        ROI intensity before corrections, elements individual slices
+    corrected_intensity: array like (_, )
+        ROI intensity after corrections. Elements individual slices
+    Output
+    ----------
+    intensity by slice plot; written to disk
+    '''
     plt.figure()
     plt.plot(intensity)
     plt.plot(corrected_intensity)

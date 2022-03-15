@@ -30,27 +30,48 @@ def z_axis_correction(
     tissue is all that is contained within. The raw image intensity in that
     region is then calculated,and used to calculate a factor by which each
     slice should be multiplied to normalize brain region intensity.
-    INPUTS:
-    input_fn: full file path of raw data source
-    output_fn: full file path of output z-axis corrected data
-    voxsize: size to which 3d voxels should be resampled.
-             Generally kept at 0.1 for consistency
-    pre_paras: Set of parameters to do with image patching
-    keras_paras: Set of parameters to do with inference,
-                 most relevant is classification threshold thd
-    new_spacing: Muliplicative factor by which image dimensions should be
-    multiplied by. Serves to change image size such that the patch dimension
-    on which the network was trained fits reasonably into the input image.
-    Of the form [horizontal_spacing, vertical_spacing, interlayer_spacing].
-    If images are large, should have elements > 1
-    If images are small should have elements < 1
-    OUTPUTS
-    preliminary mask - saved to input file directory - *_z_axis_prelim_mask.nii
-    z axis corrected image - saved to input file directory - *_z_axis.nii
-    intensity by slice image - saved to input file directory -
-                            *_intensity_by_slice.png
-    eroded preliminary mask - saved to input file directory -
-                            *_eroded_mask.nii
+    Parameters
+    ----------
+    input_fn: String
+        Full file path of raw data source
+    output_fn: String
+        Full file path of output z-axis corrected data
+    voxsizse: Float
+        Size of voxels in mm
+    pre_paras: Class
+        Class containing image processing parameters: patch dims, patch stride
+    keras_paras: Class
+        Class containing keras parameters for inference, including model path,
+        threshold, and image format.
+    new_spacing: array-like, (_, _, _)
+        Spacing to which an image will be resampled for inference. First two
+        entries correspond to in-slice dimensions, third between slices.
+    normalization_mode: String
+        To perform normalization 'by_img' or 'by_slice' before inference
+    target_size: array like (_, _, _) or None
+        Dimensions to which all images will be sampled prior to patching.
+        If None, images are not resampled to a constant size, and new_spacing
+        is used to determine image resampling.
+    frac_patch: Float in range (0, 1) or None
+        Fraction of resampled image dimensions the patch size should be set to.
+        If None, use fixed values from pre_paras.patch_dims
+    frac_stride: Float in range (0,1) or None
+        Fraction of resampled image dimensions patch stride should be set to.
+        If None, use fixed values from per_paras.patch_stride
+    likelihood_categorization: Bool
+        How should final binarization of score -> mask be done. If True, use
+        the max value of likelihood per-pixel. If False, use the mean value.
+    Outputs
+    ----------
+    preliminary mask
+        Mask calculated from first pass of inference; write to disk
+    z axis corrected image
+        Image after z-axis corrections; write to disk
+    intensity by slice
+        Plot of ROI intensity in source and z-axis corrected images by slice;
+        written to disk
+    eroded preliminary mask
+        Eroded mask from preliminary inference pass; written to disk
     '''
     prelim_mask_fn = output_fn.split('_z_axis')[0] + '_z_axis_prelim_mask.nii'
     eroded_mask_fn = output_fn.split('_z_axis')[0] + '_eroded_mask.nii'
@@ -164,6 +185,19 @@ def y_axis_correction(
     frequently appear.
     Y-axis correction is also called n4bias correction, and is handled by a
     SimpleITK filter
+    Parameters
+    ----------
+    input_fn: String
+        Full file path of raw data source
+    output_fn: String
+        Full file path of output y-axis corrected data
+    y_axis_mask: Bool
+        Whether to apply n4bias field correction to the entire image (False),
+        or an binary otsu masked region (True).
+    Outputs
+    n4b corrected image
+        Source image after n4b (y-axis) corrections
+    ----------
     '''
     source_img = sitk.ReadImage(input_fn, sitk.sitkFloat32)
     source_spacing = source_img.GetSpacing()

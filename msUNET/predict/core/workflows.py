@@ -32,7 +32,30 @@ def segment_file_structure_workflow(opt,
                                     voxsize,
                                     pre_paras,
                                     keras_paras):
+    '''
+    Handles full segmentation workflow from an input file structure selected
+    from the list of allowed structures. Curently 'file', 'directory', and
+    'dataset'. See user guide for details on each file structure.
+    Parameters
+    ----------
+    opt: Dictionary
+        Contains input parameters specified in command line. Most relevant is
+        opt.input, a string specifying file location and opt.input_type, a
+        string specifying which input type to select.
+    voxsize: Float
+        Size of voxels in mm
+    pre_paras: Class
+        Class containing image processing parameters: patch dims, patch stride
+    keras_paras: Class
+        Class containing keras parameters for inference, including model path,
+        threshold, and image format.
+    Output
+    ------
+    quality_check: Dataframe
+        Contains information about slices that are in need of manual review
+        after inference.
 
+    '''
     quality_check = pd.DataFrame(columns=['filename', 'slice_index', 'notes'])
     input_path_obj = PurePath(opt.input)
 
@@ -179,7 +202,67 @@ def segment_image_workflow(source_fn,
                            target_size,
                            segmentation_frame,
                            frame_location):
-
+    '''
+    Controls workflow for segmentation of a single image stack. Includes
+    both segmentation and preprocessing
+    Parameters
+    ----------
+    source_fn: String
+        Path to raw data file
+    z_axis_correction_check: String
+        Whether to perform z_axis correction before inference
+    y_axis_correction_check: String
+        Whether to perform y_axis correction before inference
+    voxsizse: Float
+        Size of voxels in mm
+    pre_paras: Class
+        Class containing image processing parameters: patch dims, patch stride
+    keras_paras: Class
+        Class containing keras parameters for inference, including model path,
+        threshold, and image format.
+    new_spacing: array-like, (_, _, _)
+        Spacing to which an image will be resampled for inference. First two
+        entries correspond to in-slice dimensions, third between slices.
+    normalization_mode: String
+        To perform normalization 'by_img' or 'by_slice' before inference
+    constant_size: Bool
+        Whether all images should be sampled to a constant size before patching
+    use_frac_patch: Bool
+        Whether image patches should be user-defined constants or a fraction
+        of image dimensions (True)
+    likelihood_categorization: Bool
+        How should final binarization of score -> mask be done. If True, use
+        the max value of likelihood per-pixel. If False, use the mean value.
+    y_axis_mask: Bool
+        Whether to apply n4bias field correction to the entire image (False),
+        or an binary otsu masked region (True). Only applies if
+        y_axis_correction_check is True
+    frac_patch: Float in range (0, 1)
+        If use_frac_patch is True, this values determines the fraction of
+        resampled image dimensions the patch size should be set to
+    frac_stride: Float in range (0,1)
+        If use_frac_patch is True, the fraction of resampled image dimensions
+        the patch stride should be set to
+    quality_checks: Bool
+        If true, perform post-inference quality checks. If false, do not.
+    qc_skip_edges: Bool
+        If true, quality check processing will not consider first and last
+        slices.
+    target_size: array like (_, _, _)
+        If constant_size is True, this is the dimensions to which all images
+        will be sampled prior to patching
+    segmentation_frame: Int
+        For 4d input images, this is the index of the B0 frame. 0-indexed
+    frame_location: String 'frame_first' or 'frame_last'
+        For 4d input images, whether the index of the frame is first or last
+    Output
+    ------
+    quality_check_list: Dataframe
+        Contains information about slices that are in need of manual review
+        after inference.
+    backup_image:
+        Copy of unmodified source image; written to disk
+    '''
     inference_start_time = time.time()
     suffix = get_suffix(z_axis_correction_check, y_axis_correction_check)
 

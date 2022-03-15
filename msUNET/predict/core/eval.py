@@ -17,7 +17,35 @@ def out_LabelHot_map_2D(
         frac_patch=None,
         frac_stride=None,
         likelihood_categorization=False):
-
+    '''
+    Controls image patching and inference on those patches
+    Parameters
+    ----------
+    img: array like (_, _, _)
+        Processed image to patch and infer
+    seg_net: Loaded Keras model
+        Keras U-Net segmentation model
+    pre_paras: Class
+        Class containing image processing parameters: patch dims, patch stride
+    keras_paras: Class
+        Class containing keras parameters for inference, including model path,
+        threshold, and image format.
+    frac_patch: Float in range (0, 1) or None
+        Fraction of resampled image dimensions the patch size should be set to.
+        If None, use fixed values from pre_paras.patch_dims
+    frac_stride: Float in range (0,1) or None
+        Fraction of resampled image dimensions patch stride should be set to.
+        If None, use fixed values from per_paras.patch_stride
+    likelihood_categorization: Bool
+        How should final binarization of score -> mask be done. If True, use
+        the max value of likelihood per-pixel. If False, use the mean value.
+    Outputs
+    ----------
+    label_img: SimpleITK object
+        Final binarized mask
+    likelihood_img: SimpleITK object
+        Final likelihood mask that is binarizedto create final_mask
+    '''
     patch_dims = [0, 0, 0]
     label_dims = [0, 0, 0]
     strides = [0, 0, 0]

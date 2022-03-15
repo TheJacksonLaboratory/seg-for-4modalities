@@ -16,6 +16,9 @@ from contextlib import contextmanager
 
 @contextmanager
 def suppress_stdout():
+    '''
+    Context that suppresses output to stdout
+    '''
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
@@ -27,17 +30,16 @@ def suppress_stdout():
 
 def low_snr_check(current_slice):
     '''
-    Function that determines whether a raw data slice should be flagged for
-    signal to noise ratio. Does so by comparing mean intensity in center of
-    image to mean intensity in corners. Assumes that the brain is roughly
-    centered in the image.
-    INPUTS
-    source_array: numpy array corresponding to entire MRI image scan
-    source_fn: full path to source file
-    low_snr_threshold: Multiplicative factor below which slice will be flagged
-    OUTPUTS
-    snr_check_list: list of slices and the corresponding files that contain
-    those that have been flagged for manual review.
+    Function that calculated signal to noise ratio. Compares circle of pixels
+    in image center to those on top left corner.
+    Parameters
+    ----------
+    current_slice: array like (_, _)
+        Single slice of source data stack
+    Output
+    ----------
+    snr: float
+        Signal to noise ratio
     '''
     i, j = np.indices(current_slice.shape)
     center_mean = np.array(
@@ -52,6 +54,24 @@ def low_snr_check(current_slice):
 
 
 def mask_area_check(current_slice, current_slice_source):
+    '''
+    Function that calculates the fraction of image canvas occupied by pixels
+    categorized as brain and fraction of image canvas occupied by pixels with
+    intensity greater than the mean value of all pixels in source data
+    Parameters
+    ----------
+    current_slice: array like (_, _)
+        Single slice of mask stack
+    current_slice_source: array like (_, _)
+        Single slice of source data stack
+    Outputs
+    ----------
+    mask_ratio: Float
+        Fraction of image canvas occupied by pixels categorized as brain
+    source_data_ratio: Float
+        Fraction of image canvas occupied by pixels with intensity greater
+        than the mean over current slice
+    '''
     total_pixels = current_slice.size
     mask_pixels = (np.asarray(current_slice) > 0).sum()
     source_data_pixels = (np.asarray(current_slice_source)
@@ -66,6 +86,14 @@ def mask_area_check(current_slice, current_slice_source):
 def convex_hull_image(data):
     '''
     Function that calculates and draws the convex hull for a 2D binary image
+    Parameters
+    ----------
+    data: array like (_, _)
+        2D image data, from a slice
+    Outputs
+    ----------
+    mask: array like (_, _)
+        Binary mask corresponding to convex hull region
     '''
     region = np.argwhere(data)
     hull = ConvexHull(region)
@@ -80,6 +108,14 @@ def convex_hull_image(data):
 def solidity_check(current_slice):
     '''
     Function that calculates solidity of mask
+    Parameters
+    ----------
+    current_slice: array like (_, _)
+        Single slice of mask stack
+    Output
+    ----------
+    slice_solidity: Float
+        Solidity of mask in current slice
     '''
     current_slice_convex_hull = convex_hull_image(current_slice)
 
@@ -93,7 +129,26 @@ def solidity_check(current_slice):
 
 def otsu_snr_check(current_slice):
     '''
-
+    Function that calculates signal to noise ratio using an otsu binarization
+    scheme for determining foreground and background
+    Parameters
+    ----------
+    current_slice: array like (_, _)
+        Single slice of source data stack
+    Outputs
+    ----------
+    otsu_snr: float
+        signal to noise ratio of foreground and background
+    masked_array_std: float
+        Standard deviation of foreground intensity
+    masked_background_std: float
+        Standard deviation of background intensity
+    otsu_fraction: float
+        Fraction of image canvas occupied by foreground
+    masked_array_mean: float
+        Mean intensity value of foreground
+    masked_background_mean: float
+        Mean intensity value of background
     '''
     current_image = sitk.GetImageFromArray(current_slice)
 
@@ -130,7 +185,25 @@ def otsu_snr_check(current_slice):
 
 def edge_detection(current_slice, current_mask):
     '''
-
+    Function that calculates the chamfer distance between the edge of mask
+    to the closest edge-detected pixel in source data
+    Parameters
+    ----------
+    current_slice: array like (_, _)
+        Single slice of source_data stack
+    current_mask: array like (_, _)
+        Single slice of mask stack
+    Outputs
+    ----------
+    binary_edge_fraction: float
+        Fraction of image canvas occupied by pixels categorized as edges
+        in source data
+    binary_edge_cc_count: int
+        Number of connected components contained in edge detected canvas
+        for source data
+    chamfer_dist
+        Chamfer distance between mask edge and closest edge detected in source
+        data
     '''
     current_image = sitk.GetImageFromArray(current_slice)
     current_image_mask = sitk.GetImageFromArray(current_mask)
@@ -174,7 +247,20 @@ def edge_detection(current_slice, current_mask):
 
 def intensity_location_check(current_slice):
     '''
-
+    Function that determines the fractional position of the point with the
+    largest intensity value in source data
+    Parameters
+    ----------
+    current_slice: array like (_, _)
+        Single slice of source data stack
+    Outputs
+    ----------
+    max_loc_horiz: float
+        Fractional position of point with largest intensity along the
+        horizontal axis. Range [0,1]
+    max_loc_vert: float
+        Fractional position of point with largest intensity along the
+        vertical axis. Range [0,1]
     '''
     max_loc = np.argwhere(current_slice == np.amax(current_slice))
     max_loc_horiz = max_loc[0][0]/current_slice.shape[0]
@@ -185,7 +271,18 @@ def intensity_location_check(current_slice):
 
 def geometry_check(current_mask):
     '''
-
+    Function that grabs information about the geometric qualities of mask
+    in a single slice
+    Parameters
+    ----------
+    current_mask: array like (_, _)
+        Single slice of mask stack
+    Output
+    ----------
+    roundness: float
+        Roundness of mask region in slice
+    elongation: float
+        Elongation of mask region in slice
     '''
     current_mask_image = sitk.GetImageFromArray(current_mask)
 
@@ -248,6 +345,13 @@ def u_pq(f, p, q):
 def hu(f):
     '''
     This function computes Hu's seven invariant moments.
+    hu() and associated functions modified from the following:
+    https://github.com/adailtonjn68/hu_moments_in_python
+    Reference:
+    Ming-Kuei Hu, "Visual pattern recognition by moment invariants,"
+    in IRE Transactions on Information Theory, vol. 8, no. 2, pp. 179-187,
+    February 1962. doi: 10.1109/TIT.1962.1057692
+    http://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=1057692&isnumber=22787
     '''
     u_00 = u_pq(f, 0, 0)
 
@@ -288,11 +392,18 @@ def hu(f):
 
 def array2samples_distance(array1, array2):
     '''
-    arguments:
-        array1: the array, size: (num_point, num_feature)
-        array2: the samples, size: (num_point, num_feature)
-    returns:
-        distances: each entry is the distance from a sample to array1
+    Function that calculates the distance between two arrays, one containing
+    samples of interest.
+    Parameters
+    ----------
+    array1: array like (_, _)
+        The array, size: (num_point, num_feature)
+    array2: array like (_, _)
+        The samples, size: (num_point, num_feature)
+    Output
+    ----------
+    distances: array like (_, )
+        Each entry is the distance from a sample to array1
     '''
     num_point, num_features = array1.shape
     expanded_array1 = np.tile(array1, (num_point, 1))
@@ -310,6 +421,17 @@ def array2samples_distance(array1, array2):
 
 def chamfer_distance(array1, array2):
     '''
+    Calculate the chamfer distance between two arrays
+    Parameters
+    ----------
+    array1: array like (_, _)
+        The array, size: (num_point, num_feature)
+    array2: array like (_, _)
+        The samples, size: (num_point, num_feature)
+    Output
+    ----------
+    dist: float
+        Chamfer distance between array1 and array2
 
     '''
     batch_size, num_point, num_features = array1.shape
@@ -324,7 +446,15 @@ def chamfer_distance(array1, array2):
 
 def connected_components_count(mask_array):
     '''
-
+    Calculate the number of connected components in a binay array
+    Parameters
+    ----------
+    mask_array: array like (_, _)
+        Binary array
+    Output
+    ----------
+    no_connected_components: int
+        Number of connected components in binary array
     '''
     mask_slice_img = sitk.Cast(sitk.GetImageFromArray(mask_array),
                                sitk.sitkUInt8)
@@ -339,7 +469,25 @@ def connected_components_count(mask_array):
 
 def low_brain_region(source_array, mask_array, source_fn):
     '''
-
+    Supplemental function to quality_check. Detects one common issue not well-
+    caught by model quality checks: missing intermediate sized brain region
+    in lower-middle part of brain. Accomplishes this by looking at the fraction
+    of the image canvas occupied by brain mask by slice in a given image stack.
+    If the area decreases in the central slices, those slices are likely going
+    to require some manual intervention.
+    Parameters
+    ----------
+    source_array: array like (_, _)
+        Single slice of source array stack
+    mask_array: array like (_, _)
+        Single slice of mask stack
+    source_fn: string
+        Path to source data file
+    Outputs
+    ----------
+    file_quality_check: DataFrame
+        Structure containing information about which slices this supplementary
+        method flagged for manual review
     '''
     file_quality_check = pd.DataFrame(columns=['filename',
                                                'slice_index',
@@ -402,7 +550,30 @@ def quality_check(source_array,
                   mask_fn,
                   skip_edges):
     '''
-
+    Primary handler for post-inference quality checks. Primary goal is to
+    determine which slices are in need of manual review. Two methods.
+    1) A classifier trained using expert annotation of mask quality
+    2) Bespoke solutions for individual issues not well covered by classifer
+    Parameters
+    ----------
+    source_array: array like (_, _)
+        Array corresponding to source data stack
+    mask_array: array like (_, _)
+        Array corresponding to mask stack
+    qc_classifier: sklearn model
+        sklearn model trained for slice quality classification
+    source_fn: string
+        Path to source data
+    mask_fn: string
+        Path to mask
+    skip_edges: bool
+        If true, first and last slices will not be included in the output list
+        for manual review. If False, they can be included.
+    Output
+    ----------
+    file_quality_check: DataFrame
+        Structure containing information about which slices this supplementary
+        method flagged for manual review
     '''
     qc_debug = False
     file_quality_check = pd.DataFrame(columns=['filename',
@@ -451,8 +622,6 @@ def quality_check(source_array,
                                       elongation]).reshape(1, -1)
             prediction = (qc_classifier.predict_proba(
                 feature_array)[:, 1] >= 0.69).astype(bool)
-            print(feature_array)
-            print(prediction)
             if prediction is False:
                 notes = 'Model Classified'
         except RuntimeError:

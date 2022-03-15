@@ -23,7 +23,47 @@ def brain_seg_prediction(
         frac_patch=None,
         frac_stride=None,
         likelihood_categorization=False):
-
+    '''
+    Handled segmentation for single image. Segmentation only.
+    Parameters
+    ----------
+    input_path: String
+        Path to processed input file
+    output_path: String
+        Path to write mask to
+    voxsizse: Float
+        Size of voxels in mm
+    pre_paras: Class
+        Class containing image processing parameters: patch dims, patch stride
+    keras_paras: Class
+        Class containing keras parameters for inference, including model path,
+        threshold, and image format.
+    new_spacing: array-like, (_, _, _)
+        Spacing to which an image will be resampled for inference. First two
+        entries correspond to in-slice dimensions, third between slices.
+    normalization_mode: String
+        To perform normalization 'by_img' or 'by_slice' before inference
+    target_size: array like (_, _, _) or None
+        Dimensions to which all images will be sampled prior to patching.
+        If None, images are not resampled to a constant size, and new_spacing
+        is used to determine image resampling.
+    frac_patch: Float in range (0, 1) or None
+        Fraction of resampled image dimensions the patch size should be set to.
+        If None, use fixed values from pre_paras.patch_dims
+    frac_stride: Float in range (0,1) or None
+        Fraction of resampled image dimensions patch stride should be set to.
+        If None, use fixed values from per_paras.patch_stride
+    likelihood_categorization: Bool
+        How should final binarization of score -> mask be done. If True, use
+        the max value of likelihood per-pixel. If False, use the mean value.
+    Output
+    ----------
+    final_mask:
+        Final binary mask from segmentation; written to disk
+    likelihood_mask:
+        Final likelihood mask that is binarized to create final_mask;
+        written to disk
+    '''
     seg_net = load_model(keras_paras.model_path,
                          compile=False,
                          custom_objects={'dice_coef_loss': dice_coef_loss,
