@@ -357,6 +357,8 @@ def image_slice_4d(source_fn,
         inference_img.SetSpacing(source_spacing)
         sitk.WriteImage(inference_img, source_fn)
 
+    return inference_img
+
 
 def clip_outliers(source_fn, clip_threshold):
     '''
@@ -404,17 +406,14 @@ def remove_small_holes_and_points(img):
     holes_filled_points_removed: array like (_, _, _)
         Input image will holes filled and isolated points removed
     '''
-    binary_hole_filler = sitk.BinaryFillholeImageFilter()
-    binary_inversion_filter = sitk.InvertIntensityImageFilter()
-    binary_inversion_filter.SetMaximum(1)
-
-    missing_hole_fill = binary_hole_filler.Execute(img)
-    missing_hole_fill_invert = binary_inversion_filter.Execute(
-        missing_hole_fill)
-    isolated_brain_invert = binary_hole_filler.Execute(
-        missing_hole_fill_invert)
-    holes_filled_points_removed = binary_inversion_filter.Execute(
-        isolated_brain_invert)
+    opening_filter = sitk.BinaryMorphologicalOpeningImageFilter()
+    opening_filter.SetForegroundValue(1)
+    opening_filter.SetKernelRadius(1)
+    closing_filter = sitk.BinaryMorphologicalClosingImageFilter()
+    closing_filter.SetForegroundValue(1)
+    closing_filter.SetKernelRadius(1)
+    holes_filled = closing_filter.Execute(img)
+    holes_filled_points_removed = opening_filter.Execute(holes_filled)
 
     return holes_filled_points_removed
 

@@ -116,6 +116,8 @@ def brain_seg_prediction(
         revert=True)
 
     resampled_label_map = remove_small_holes_and_points(resampled_label_map)
+    resampled_label_map = sitk.Cast(resampled_label_map,
+                                    imgobj.GetPixelIDValue())
 
     sitk.WriteImage(resampled_label_map, output_path)
     sitk.WriteImage(resampled_likelihood_map,

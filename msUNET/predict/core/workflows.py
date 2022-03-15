@@ -254,23 +254,27 @@ def segment_image_workflow(source_fn,
     segmentation_frame: Int
         For 4d input images, this is the index of the B0 frame. 0-indexed
     frame_location: String 'frame_first' or 'frame_last'
-        For 4d input images, whether the index of the frame is first or last
+       For 4d input images, whether the index of the frame is first or last
     Output
-    ------
+    -----
     quality_check_list: Dataframe
-        Contains information about slices that are in need of manual review
-        after inference.
+       Contains information about slices that are in need of manual review
+       after inference.
     backup_image:
         Copy of unmodified source image; written to disk
     '''
     inference_start_time = time.time()
-    suffix = get_suffix(z_axis_correction_check, y_axis_correction_check)
 
-    # Basic image preprocessing. Unmodified image saved: {source}_original.nii
+    suffix = get_suffix(z_axis_correction_check, y_axis_correction_check)
     source_path_obj, original_fn = write_backup_image(source_fn)
-    image_slice_4d(source_fn,
-                   best_frame=segmentation_frame,
-                   frame_location=frame_location)
+    segmentation_fn = str(source_path_obj.with_name(
+            source_path_obj.stem.split('.')[0] +
+            '_segmentation' +
+            ''.join(source_path_obj.suffixes)))
+
+    inference_img = image_slice_4d(source_fn,
+                                   best_frame=segmentation_frame,
+                                   frame_location=frame_location)
     clip_outliers(source_fn, clip_threshold=20)
 
     if z_axis_correction_check == 'True':
@@ -408,7 +412,9 @@ def segment_image_workflow(source_fn,
                 frac_stride=frac_stride,
                 likelihood_categorization=likelihood_categorization)
 
+    shutil.copyfile(source_fn, segmentation_fn)
     shutil.copyfile(original_fn, source_fn)
+    os.remove(original_fn)
 
     print('Completed Inference - Time: ' +
           str(time.time() - inference_start_time))
@@ -421,11 +427,11 @@ def segment_image_workflow(source_fn,
         qc_start_time = time.time()
         print('Performing post-inference quality checks: ' + source_fn)
 
-        source_array = sitk.GetArrayFromImage(sitk.ReadImage(source_fn))
+        inference_array = sitk.GetArrayFromImage(inference_img)
         mask_array = sitk.GetArrayFromImage(sitk.ReadImage(mask_fn))
         qc_classifier = joblib.load(
             './msUNET/predict/scripts/quality_check_22822.joblib')
-        file_quality_check_df = quality_check(source_array,
+        file_quality_check_df = quality_check(inference_array,
                                               mask_array,
                                               qc_classifier,
                                               source_fn,

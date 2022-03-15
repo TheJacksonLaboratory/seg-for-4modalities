@@ -44,7 +44,7 @@ def out_LabelHot_map_2D(
     label_img: SimpleITK object
         Final binarized mask
     likelihood_img: SimpleITK object
-        Final likelihood mask that is binarizedto create final_mask
+        Final likelihood mask that is binarized to create final_mask
     '''
     patch_dims = [0, 0, 0]
     label_dims = [0, 0, 0]

@@ -293,14 +293,11 @@ def geometry_check(current_mask):
     no_pixels = []
     for label in labels:
         no_pixels.append(len(image_stats_filter.GetIndexes(label)))
-    try:
-        primary_label = int(np.argwhere(
-            np.array(no_pixels) == np.amax(np.array(no_pixels)))[0][0]+1)
-        roundness = image_stats_filter.GetRoundness(primary_label)
-        elongation = image_stats_filter.GetElongation(primary_label)
-    except RuntimeError:
-        roundness = 0
-        elongation = 0
+
+    primary_label = int(np.argwhere(
+        np.array(no_pixels) == np.amax(np.array(no_pixels)))[0][0]+1)
+    roundness = image_stats_filter.GetRoundness(primary_label)
+    elongation = image_stats_filter.GetElongation(primary_label)
 
     return roundness, elongation
 
@@ -624,7 +621,7 @@ def quality_check(source_array,
                 feature_array)[:, 1] >= 0.69).astype(bool)
             if prediction is False:
                 notes = 'Model Classified'
-        except RuntimeError:
+        except:
             notes = 'Feature Calculation Failure'
             prediction = False
 
