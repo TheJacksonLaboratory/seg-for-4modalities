@@ -359,7 +359,8 @@ def write_backup_image(source_fn):
 
 def image_slice_4d(source_fn,
                    best_frame,
-                   frame_location):
+                   frame_location,
+                   output_orientation):
     '''
     Function that slices imput 4d images to segment-able 3d images
     Parameters
@@ -385,14 +386,17 @@ def image_slice_4d(source_fn,
             inference_array = source_array[:, :, :, best_frame]
         inference_img = sitk.GetImageFromArray(inference_array)
         inference_img.SetSpacing(source_spacing)
-        sitk.WriteImage(inference_img, source_fn)
+        sitk.WriteImage(sitk.DICOMOrient(inference_img, output_orientation),
+                        source_fn)
     else:
         inference_img = source_img
 
     return inference_img
 
 
-def clip_outliers(source_fn, clip_threshold):
+def clip_outliers(source_fn,
+                  clip_threshold,
+                  output_orientation):
     '''
     Function that clips pixels with values much above the mean of the image
     Parameters
@@ -422,7 +426,8 @@ def clip_outliers(source_fn, clip_threshold):
     source_image = sitk.GetImageFromArray(source_array)
     source_image.SetSpacing(source_spacing)
 
-    sitk.WriteImage(source_image, source_fn)
+    sitk.WriteImage(sitk.DICOMOrient(source_image, output_orientation),
+                    source_fn)
 
 
 def remove_small_holes_and_points(img):
@@ -469,6 +474,7 @@ def erode_img_by_slice(img,
     '''
     erode_filter = sitk.BinaryErodeImageFilter()
     erode_filter.SetKernelRadius(kernel_radius)
+    erode_filter.SetForegroundValue(1)
 
     img_spacing = img.GetSpacing()
     img_array = sitk.GetArrayFromImage(img)
@@ -477,7 +483,8 @@ def erode_img_by_slice(img,
     for i in range(0, img_array.shape[0]):
         current_layer_img = sitk.GetImageFromArray(img_array[i, :, :])
         current_layer_img.SetSpacing(img_spacing)
-        current_layer_img = erode_filter.Execute(current_layer_img)
+        current_layer_img = erode_filter.Execute(sitk.Cast(current_layer_img,
+                                                           sitk.sitkUInt8))
         eroded_array[i, :, :] = sitk.GetArrayFromImage(current_layer_img)
 
     eroded_img = sitk.GetImageFromArray(eroded_array)

@@ -116,7 +116,8 @@ def segment_file_structure_workflow(opt,
                         opt.qc_skip_edges,
                         opt.target_size,
                         opt.segmentation_frame,
-                        opt.frame_location)
+                        opt.frame_location,
+                        opt.output_orientation)
                     quality_check = quality_check.append(quality_check_temp,
                                                          ignore_index=True)
                     print('Segmentation successful for the file: \n'
@@ -174,7 +175,8 @@ def segment_file_structure_workflow(opt,
                     opt.qc_skip_edges,
                     opt.target_size,
                     opt.segmentation_frame,
-                    opt.frame_location)
+                    opt.frame_location,
+                    opt.output_orientation)
                 quality_check = quality_check.append(quality_check_temp,
                                                      ignore_index=True)
                 print('Segmentation successful for the file: \n'
@@ -233,7 +235,8 @@ def segment_file_structure_workflow(opt,
                 opt.qc_skip_edges,
                 opt.target_size,
                 opt.segmentation_frame,
-                opt.frame_location)
+                opt.frame_location,
+                opt.output_orientation)
             print('Segmentation successful for the file: \n'
                   + str(source_fn),
                   file=sys.stderr)
@@ -272,7 +275,8 @@ def segment_image_workflow(source_fn,
                            qc_skip_edges,
                            target_size,
                            segmentation_frame,
-                           frame_location):
+                           frame_location,
+                           output_orientation):
     '''
     Controls workflow for segmentation of a single image stack. Includes
     both segmentation and preprocessing
@@ -345,8 +349,11 @@ def segment_image_workflow(source_fn,
 
     inference_img = image_slice_4d(source_fn,
                                    best_frame=segmentation_frame,
-                                   frame_location=frame_location)
-    clip_outliers(source_fn, clip_threshold=20)
+                                   frame_location=frame_location,
+                                   output_orientation=output_orientation)
+    clip_outliers(source_fn,
+                  clip_threshold=20,
+                  output_orientation=output_orientation)
 
     if z_axis_correction_check == 'True':
         print('Performing z-axis correction')
@@ -365,6 +372,7 @@ def segment_image_workflow(source_fn,
                     keras_paras,
                     new_spacing,
                     normalization_mode,
+                    output_orientation,
                     likelihood_categorization=likelihood_categorization)
             elif constant_size:
                 z_axis_correction(
@@ -375,6 +383,7 @@ def segment_image_workflow(source_fn,
                     keras_paras,
                     new_spacing,
                     normalization_mode,
+                    output_orientation,
                     target_size,
                     likelihood_categorization=likelihood_categorization)
         elif use_frac_patch:
@@ -387,6 +396,7 @@ def segment_image_workflow(source_fn,
                     keras_paras,
                     new_spacing,
                     normalization_mode,
+                    output_orientation,
                     frac_patch=frac_patch,
                     frac_stride=frac_stride,
                     likelihood_categorization=likelihood_categorization)
@@ -399,6 +409,7 @@ def segment_image_workflow(source_fn,
                     keras_paras,
                     new_spacing,
                     normalization_mode,
+                    output_orientation,
                     target_size,
                     frac_patch=frac_patch,
                     frac_stride=frac_stride,
@@ -412,7 +423,8 @@ def segment_image_workflow(source_fn,
             ''.join(source_path_obj.suffixes)))
         y_axis_correction(source_fn,
                           y_axis_fn,
-                          y_axis_mask)
+                          y_axis_mask,
+                          output_orientation)
 
         if z_axis_correction_check == 'True':
             print('Performing y-axis correction to z-axis corrected data')
@@ -422,7 +434,8 @@ def segment_image_workflow(source_fn,
                 ''.join(z_axis_path_obj.suffixes)))
             y_axis_correction(z_axis_fn,
                               z_axis_n4b_fn,
-                              y_axis_mask)
+                              y_axis_mask,
+                              output_orientation)
 
     final_inference_fn = str(source_path_obj.with_name(
         source_path_obj.stem.split('.')[0] +
@@ -442,6 +455,7 @@ def segment_image_workflow(source_fn,
                 keras_paras,
                 new_spacing,
                 normalization_mode,
+                output_orientation,
                 likelihood_categorization=likelihood_categorization)
         elif constant_size:
             new_spacing = None
@@ -453,6 +467,7 @@ def segment_image_workflow(source_fn,
                 keras_paras,
                 new_spacing,
                 normalization_mode,
+                output_orientation,
                 target_size,
                 likelihood_categorization=likelihood_categorization)
     if use_frac_patch:
@@ -465,6 +480,7 @@ def segment_image_workflow(source_fn,
                 keras_paras,
                 new_spacing,
                 normalization_mode,
+                output_orientation,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,
                 likelihood_categorization=likelihood_categorization)
@@ -478,6 +494,7 @@ def segment_image_workflow(source_fn,
                 keras_paras,
                 new_spacing,
                 normalization_mode,
+                output_orientation,
                 target_size,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,

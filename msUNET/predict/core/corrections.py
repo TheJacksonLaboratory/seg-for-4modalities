@@ -18,6 +18,7 @@ def z_axis_correction(
         keras_paras,
         new_spacing,
         normalization_mode,
+        output_orientation,
         target_size=None,
         frac_patch=None,
         frac_stride=None,
@@ -86,6 +87,7 @@ def z_axis_correction(
                 keras_paras,
                 new_spacing,
                 normalization_mode,
+                output_orientation,
                 likelihood_categorization=likelihood_categorization)
         elif target_size is not None:
             brain_seg_prediction(
@@ -96,6 +98,7 @@ def z_axis_correction(
                 keras_paras,
                 new_spacing,
                 normalization_mode,
+                output_orientation,
                 target_size,
                 likelihood_categorization=likelihood_categorization)
     if frac_patch is not None:
@@ -108,6 +111,7 @@ def z_axis_correction(
                 keras_paras,
                 new_spacing,
                 normalization_mode,
+                output_orientation,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,
                 likelihood_categorization=likelihood_categorization)
@@ -120,6 +124,7 @@ def z_axis_correction(
                 keras_paras,
                 new_spacing,
                 normalization_mode,
+                output_orientation,
                 target_size,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,
@@ -128,7 +133,8 @@ def z_axis_correction(
     eroded_mask_array, eroded_mask = \
         erode_img_by_slice(sitk.ReadImage(prelim_mask_fn),
                            kernel_radius=5)
-    sitk.WriteImage(eroded_mask, eroded_mask_fn)
+    sitk.WriteImage(sitk.DICOMOrient(eroded_mask, output_orientation),
+                    eroded_mask_fn)
 
     source_img = sitk.ReadImage(input_fn)
     source_spacing = source_img.GetSpacing()
@@ -162,7 +168,8 @@ def z_axis_correction(
     z_axis_corr_img = sitk.GetImageFromArray(source_array)
     z_axis_corr_img.SetSpacing(source_spacing)
 
-    sitk.WriteImage(z_axis_corr_img, output_fn)
+    sitk.WriteImage(sitk.DICOMOrient(z_axis_corr_img, output_orientation),
+                    output_fn)
 
     # Build a visualization that will go into the source folder
     plot_intensity_comparison(slice_intensity,
@@ -174,7 +181,8 @@ def z_axis_correction(
 def y_axis_correction(
         input_fn,
         output_fn,
-        y_axis_mask):
+        y_axis_mask,
+        output_orientation):
     '''
     Function that handles y-axis corrections
     Y-axis corrections attempt to normalize image intensity variations within
@@ -226,4 +234,5 @@ def y_axis_correction(
     n4b_corrected_img.SetSpacing(source_spacing)
     n4b_corrected_img.SetDirection(source_direction)
 
-    sitk.WriteImage(n4b_corrected_img, output_fn)
+    sitk.WriteImage(sitk.DICOMOrient(n4b_corrected_img, output_orientation),
+                    output_fn)
