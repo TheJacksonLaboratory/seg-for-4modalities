@@ -477,7 +477,8 @@ def erode_img_by_slice(img,
     for i in range(0, img_array.shape[0]):
         current_layer_img = sitk.GetImageFromArray(img_array[i, :, :])
         current_layer_img.SetSpacing(img_spacing)
-        current_layer_img = erode_filter.Execute(current_layer_img)
+        current_layer_img = erode_filter.Execute(sitk.Cast(current_layer_img,
+                                                           sitk.sitkUInt8))
         eroded_array[i, :, :] = sitk.GetArrayFromImage(current_layer_img)
 
     eroded_img = sitk.GetImageFromArray(eroded_array)
