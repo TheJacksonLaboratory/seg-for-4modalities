@@ -1,0 +1,34 @@
+Working Directory: 
+/Users/frohoz/Documents/GitHub/seg-for-4modalities
+
+Command Passed to segment_brain.py: 
+msUNET/segment_brain.py --input_type dataset --input demo/test_dataset/
+
+Parameters Used: 
+channel_location='channels_last'
+constant_size=False
+frac_patch=0.5
+frac_stride=0.125
+frame_location='frame_first'
+image_patch=128
+image_stride=16
+input='demo/test_dataset/'
+input_type='dataset'
+likelihood_categorization=True
+model='model156_0.50.25_scan.hdf5'
+new_spacing=[0.08
+0.08
+1]
+normalization_mode='by_img'
+qc_skip_edges=False
+quality_checks=True
+segmentation_frame=0
+skip_preprocessing=False
+target_size=[188
+188
+None]
+threshold=0.3
+use_frac_patch=False
+y_axis_correction='False'
+y_axis_mask=True
+z_axis_correction='False'

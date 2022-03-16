@@ -176,6 +176,36 @@ def listdir_nohidden(path):
     return glob.glob(os.path.join(path, '*'))
 
 
+def listdir_only(path):
+    '''
+    Function that lists only subdirectories in the given path.
+    Parameters
+    ----------
+    path: string
+        Path to directory
+    Outputs
+    ----------
+        List of subdirectories at path
+    '''
+    return [d for d in (os.path.join(path, d1) for d1 in os.listdir(path))
+            if os.path.isdir(d)]
+
+
+def list_nii_only(path):
+    '''
+    Function that lists only files with the .nii or .nii.gz extension.
+    Parameters
+    ----------
+    path: string
+        Path to directory
+    Outputs
+    ----------
+        List of .nii or .nii.gz files at the path
+    '''
+    return [d for d in (os.path.join(path, d1) for d1 in os.listdir(path))
+            if (d.endswith('.nii') or d.endswith('.nii.gz'))]
+
+
 def get_suffix(z_axis, y_axis):
     '''
     Function that determines the suffix to be used in finding the file in
@@ -356,6 +386,8 @@ def image_slice_4d(source_fn,
         inference_img = sitk.GetImageFromArray(inference_array)
         inference_img.SetSpacing(source_spacing)
         sitk.WriteImage(inference_img, source_fn)
+    else:
+        inference_img = source_img
 
     return inference_img
 

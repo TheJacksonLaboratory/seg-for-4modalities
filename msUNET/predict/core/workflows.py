@@ -17,6 +17,7 @@ import joblib
 import shutil
 import sys
 import time
+import traceback
 import pandas as pd
 import SimpleITK as sitk
 from pathlib import PurePath
@@ -24,7 +25,7 @@ from .corrections import y_axis_correction, z_axis_correction
 from ..scripts.segmentation import brain_seg_prediction
 from ..scripts.original_seg import brain_seg_prediction_original
 from .utils import get_suffix, write_backup_image, listdir_nohidden
-from .utils import image_slice_4d, clip_outliers
+from .utils import image_slice_4d, clip_outliers, listdir_only, list_nii_only
 from .quality import quality_check
 
 
@@ -61,21 +62,99 @@ def segment_file_structure_workflow(opt,
 
     if opt.input_type == 'dataset':
         qc_log_path = str(opt.input + '/segmentation_log.txt')
-        mouse_dirs = sorted(listdir_nohidden(opt.input))
-        print('Working with the following dataset directory: ' + opt.input)
-        print('It contains the following subdirectories \
-              corresponding to individual mice: \n' +
-              str(mouse_dirs))
         sys.stderr = open(qc_log_path, 'w')
+
+        mouse_dirs = sorted(listdir_only(opt.input))
+        print('Working with the following dataset directory: ' + opt.input)
+        print('It contains the following subdirectories '
+              + 'corresponding to individual mice: \n'
+              + str(mouse_dirs))
+
         for mouse_dir in mouse_dirs:
-            modality_dirs = sorted(listdir_nohidden(mouse_dir))
-            print('For the mouse ' +
-                  str(mouse_dir) +
-                  ' I see the following modality folders: \n ' +
+            modality_dirs = sorted(listdir_only(mouse_dir))
+            print('For the mouse ' + str(mouse_dir) +
+                  ' there exists the following modality directories: \n ' +
                   str(modality_dirs))
+
             for modality_dir in modality_dirs:
-                source_fn = glob.glob(os.path.join(modality_dir, '*'))[0]
+                try:
+                    source_fns = list_nii_only(modality_dir)
+                    if len(source_fns) == 0:
+                        raise RuntimeError(
+                            str('Zero files with extension .nii or .nii.gz'
+                                + ' found in the dataset subdirectory '
+                                + modality_dir
+                                + ' Ensure that there is exactly 1 image file'
+                                + ' in each subdirectory'))
+                    source_fn = source_fns[0]
+                    print('Starting Inference on file: ' + source_fn)
+                    print('\nStarting Inference on file: ' + source_fn,
+                          file=sys.stderr)
+                    if len(source_fns) > 1:
+                        raise RuntimeError(
+                            str('Multiple files with extension .nii or .nii.gz'
+                                + ' found in the dataset subdirectory '
+                                + modality_dir
+                                + ' Ensure that there is only 1 image file'
+                                + ' in each subdirectory'))
+                    quality_check_temp = segment_image_workflow(
+                        source_fn,
+                        opt.z_axis_correction,
+                        opt.y_axis_correction,
+                        voxsize,
+                        pre_paras,
+                        keras_paras,
+                        opt.new_spacing,
+                        opt.normalization_mode,
+                        opt.constant_size,
+                        opt.use_frac_patch,
+                        opt.likelihood_categorization,
+                        opt.y_axis_mask,
+                        opt.frac_patch,
+                        opt.frac_stride,
+                        opt.quality_checks,
+                        opt.qc_skip_edges,
+                        opt.target_size,
+                        opt.segmentation_frame,
+                        opt.frame_location)
+                    quality_check = quality_check.append(quality_check_temp,
+                                                         ignore_index=True)
+                    print('Segmentation successful for the file: \n'
+                          + str(source_fn),
+                          file=sys.stderr)
+                except Exception as e:
+                    print('Segmentation has failed for the file: \n'
+                          + str(source_fn)
+                          + '\nWith the below error: \n',
+                          file=sys.stderr)
+                    print(traceback.format_exc(), file=sys.stderr)
+                    print('Segmentation failed for file: ' + source_fn)
+                    print('See ' + str(qc_log_path) + ' for details \n')
+                    continue
+
+        sys.stderr.close()
+        sys.stderr = sys.__stderr__
+
+    elif opt.input_type == 'directory':
+        qc_log_path = str(opt.input + '/segmentation_log.txt')
+        sys.stderr = open(qc_log_path, 'w')
+
+        print('Working with the following directory: ' + opt.input)
+        print('It contains the following data files: \n' +
+              str(list_nii_only(opt.input)))
+        source_files = list_nii_only(opt.input)
+        if len(source_files) == 0:
+            raise RuntimeError(
+                str('Zero files with extension .nii or .nii.gz'
+                    + ' found in the dataset subdirectory '
+                    + str(opt.input)
+                    + ' Ensure that there is exactly 1 image file'
+                    + ' in each subdirectory'))
+        for source_fn in source_files:
+            try:
                 print('Starting Inference on file: ' + source_fn)
+                print('\nStarting Inference on file: ' + source_fn,
+                      file=sys.stderr)
                 quality_check_temp = segment_image_workflow(
                     source_fn,
                     opt.z_axis_correction,
@@ -98,40 +177,19 @@ def segment_file_structure_workflow(opt,
                     opt.frame_location)
                 quality_check = quality_check.append(quality_check_temp,
                                                      ignore_index=True)
-        sys.stderr.close()
-        sys.stderr = sys.__stderr__
+                print('Segmentation successful for the file: \n'
+                      + str(source_fn),
+                      file=sys.stderr)
+            except Exception as e:
+                print('Segmentation has failed for the file: \n'
+                      + str(source_fn)
+                      + '\nWith the below error: \n',
+                      file=sys.stderr)
+                print(traceback.format_exc(), file=sys.stderr)
+                print('Segmentation failed for file: ' + source_fn)
+                print('See ' + str(qc_log_path) + ' for details \n')
+                continue
 
-    elif opt.input_type == 'directory':
-        print('Working with the following directory: ' + opt.input)
-        print('It contains the following data files: \n' +
-              str(listdir_nohidden(opt.input)))
-        source_files = listdir_nohidden(opt.input)
-        qc_log_path = str(opt.input + '/segmentation_log.txt')
-        sys.stderr = open(qc_log_path, 'w')
-        for source_fn in source_files:
-            print('Starting Inference on file: ' + source_fn)
-            quality_check_temp = segment_image_workflow(
-                source_fn,
-                opt.z_axis_correction,
-                opt.y_axis_correction,
-                voxsize,
-                pre_paras,
-                keras_paras,
-                opt.new_spacing,
-                opt.normalization_mode,
-                opt.constant_size,
-                opt.use_frac_patch,
-                opt.likelihood_categorization,
-                opt.y_axis_mask,
-                opt.frac_patch,
-                opt.frac_stride,
-                opt.quality_checks,
-                opt.qc_skip_edges,
-                opt.target_size,
-                opt.segmentation_frame,
-                opt.frame_location)
-            quality_check = quality_check.append(quality_check_temp,
-                                                 ignore_index=True)
         sys.stderr.close()
         sys.stderr = sys.__stderr__
 
@@ -155,26 +213,39 @@ def segment_file_structure_workflow(opt,
         print('Starting Inference on file: ' + source_fn)
         qc_log_path = str(input_path_obj.parents[0]) + '/segmentation_log.txt'
         sys.stderr = open(qc_log_path, 'w')
-        quality_check_temp = segment_image_workflow(
-            source_fn,
-            opt.z_axis_correction,
-            opt.y_axis_correction,
-            voxsize,
-            pre_paras,
-            keras_paras,
-            opt.new_spacing,
-            opt.normalization_mode,
-            opt.constant_size,
-            opt.use_frac_patch,
-            opt.likelihood_categorization,
-            opt.y_axis_mask,
-            opt.frac_patch,
-            opt.frac_stride,
-            opt.quality_checks,
-            opt.qc_skip_edges,
-            opt.target_size,
-            opt.segmentation_frame,
-            opt.frame_location)
+        try:
+            quality_check_temp = segment_image_workflow(
+                source_fn,
+                opt.z_axis_correction,
+                opt.y_axis_correction,
+                voxsize,
+                pre_paras,
+                keras_paras,
+                opt.new_spacing,
+                opt.normalization_mode,
+                opt.constant_size,
+                opt.use_frac_patch,
+                opt.likelihood_categorization,
+                opt.y_axis_mask,
+                opt.frac_patch,
+                opt.frac_stride,
+                opt.quality_checks,
+                opt.qc_skip_edges,
+                opt.target_size,
+                opt.segmentation_frame,
+                opt.frame_location)
+            print('Segmentation successful for the file: \n'
+                  + str(source_fn),
+                  file=sys.stderr)
+        except Exception as e:
+            print('Segmentation has failed for the file: \n'
+                  + str(source_fn)
+                  + '\nWith the below error: \n',
+                  file=sys.stderr)
+            print(traceback.format_exc(), file=sys.stderr)
+            print('Segmentation failed for file: ' + source_fn)
+            print('See ' + str(qc_log_path) + ' for details \n')
+
         sys.stderr.close()
         sys.stderr = sys.__stderr__
         quality_check = quality_check.append(quality_check_temp,

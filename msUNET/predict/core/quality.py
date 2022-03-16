@@ -6,6 +6,7 @@ quality_check() is the primary function handling qc
 
 import sys
 import os
+import traceback
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
@@ -619,9 +620,15 @@ def quality_check(source_array,
                                       elongation]).reshape(1, -1)
             prediction = (qc_classifier.predict_proba(
                 feature_array)[:, 1] >= 0.69).astype(bool)
-            if prediction is False:
+            if prediction == False:
                 notes = 'Model Classified'
-        except:
+        except Exception as e:
+            print('Slice ' + str(i+1)
+                  + ' experienced an error while calculating QC features.'
+                  + ' This is non-fatal, but notable if frequently observed',
+                  file=sys.stderr)
+            print('The error is as follows:', file=sys.stderr)
+            print(traceback.format_exc(), file=sys.stderr)
             notes = 'Feature Calculation Failure'
             prediction = False
 
