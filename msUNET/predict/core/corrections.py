@@ -131,12 +131,12 @@ def z_axis_correction(
                 likelihood_categorization=likelihood_categorization)
 
     eroded_mask_array, eroded_mask = \
-        erode_img_by_slice(sitk.ReadImage(prelim_mask_fn),
+        erode_img_by_slice(sitk.DICOMOrient(sitk.ReadImage(prelim_mask_fn), 'LPS'),
                            kernel_radius=5)
     sitk.WriteImage(sitk.DICOMOrient(eroded_mask, output_orientation),
                     eroded_mask_fn)
 
-    source_img = sitk.ReadImage(input_fn)
+    source_img = sitk.DICOMOrient(sitk.ReadImage(input_fn), 'LPS')
     source_spacing = source_img.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_img)
 
@@ -207,7 +207,7 @@ def y_axis_correction(
         Source image after n4b (y-axis) corrections
     ----------
     '''
-    source_img = sitk.ReadImage(input_fn, sitk.sitkFloat32)
+    source_img = sitk.DICOMOrient(sitk.ReadImage(input_fn, sitk.sitkFloat32), 'LPS')
     source_spacing = source_img.GetSpacing()
     source_direction = source_img.GetDirection()
     source_array = sitk.GetArrayFromImage(source_img)

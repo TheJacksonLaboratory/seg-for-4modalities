@@ -70,8 +70,7 @@ def brain_seg_prediction(
                          custom_objects={'dice_coef_loss': dice_coef_loss,
                                          'dice_coef': dice_coef})
 
-    imgobj = sitk.ReadImage(input_path)
-    #imgobj = sitk.DICOMOrient(imgobj, 'LPS')
+    imgobj = sitk.DICOMOrient(sitk.ReadImage(input_path),'LPS')
     if target_size is None:
         resampled_imgobj = resample_img(imgobj,
                                         new_spacing=new_spacing,
@@ -80,7 +79,6 @@ def brain_seg_prediction(
         resampled_imgobj = resample_img(imgobj,
                                         interpolator=sitk.sitkLinear,
                                         target_size=target_size)
-    #resampled_imgobj = sitk.DICOMOrient(resampled_imgobj, 'LPS')
     img_array = sitk.GetArrayFromImage(resampled_imgobj)
 
     normed_array = min_max_normalization(img_array, normalization_mode)

@@ -255,7 +255,7 @@ def str2bool(v):
 
 def input_logging(opt, input_command):
     '''
-    Function that writed exact command passed to python to file, along with
+    Function that writes exact command passed to python to file, along with
     individual parameters
     Parameters
     ----------
@@ -376,7 +376,7 @@ def image_slice_4d(source_fn,
     inference_img
         3D slice of input 4D image; written to disk
     '''
-    source_img = sitk.ReadImage(source_fn)
+    source_img = sitk.DICOMOrient(sitk.ReadImage(source_fn), 'LPS')
     source_spacing = source_img.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_img)
     if len(source_array.shape) > 3:
@@ -409,7 +409,7 @@ def clip_outliers(source_fn,
     ----------
     clipped image; written to disk
     '''
-    source_image = sitk.ReadImage(source_fn)
+    source_image = sitk.DICOMOrient(sitk.ReadImage(source_fn), 'LPS')
     source_spacing = source_image.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_image)
     source_shape = source_array.shape

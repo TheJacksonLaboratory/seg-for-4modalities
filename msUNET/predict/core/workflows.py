@@ -516,7 +516,8 @@ def segment_image_workflow(source_fn,
         print('Performing post-inference quality checks: ' + source_fn)
 
         inference_array = sitk.GetArrayFromImage(inference_img)
-        mask_array = sitk.GetArrayFromImage(sitk.ReadImage(mask_fn))
+        mask_array = sitk.GetArrayFromImage(
+            sitk.DICOMOrient(sitk.ReadImage(mask_fn), 'LPS'))
         qc_classifier = joblib.load(
             './msUNET/predict/scripts/quality_check_22822.joblib')
         file_quality_check_df = quality_check(inference_array,
