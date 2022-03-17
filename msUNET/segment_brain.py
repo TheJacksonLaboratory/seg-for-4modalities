@@ -186,8 +186,12 @@ parser.add_argument(
     choices=['frame_first',
              'frame_last'],
     default='frame_first')
-
-# TODO: Add input checks and enforcement
+parser.add_argument(
+    "-oo",
+    "--output_orientation",
+    help="Orientation to which output mask will be cast",
+    type=str,
+    default='RAS')
 
 opt = parser.parse_args()
 input_logging(opt, sys.argv)

@@ -255,7 +255,7 @@ def str2bool(v):
 
 def input_logging(opt, input_command):
     '''
-    Function that writed exact command passed to python to file, along with
+    Function that writes exact command passed to python to file, along with
     individual parameters
     Parameters
     ----------
@@ -359,7 +359,8 @@ def write_backup_image(source_fn):
 
 def image_slice_4d(source_fn,
                    best_frame,
-                   frame_location):
+                   frame_location,
+                   output_orientation):
     '''
     Function that slices imput 4d images to segment-able 3d images
     Parameters
@@ -375,7 +376,7 @@ def image_slice_4d(source_fn,
     inference_img
         3D slice of input 4D image; written to disk
     '''
-    source_img = sitk.ReadImage(source_fn)
+    source_img = sitk.DICOMOrient(sitk.ReadImage(source_fn), 'LPS')
     source_spacing = source_img.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_img)
     if len(source_array.shape) > 3:
@@ -385,14 +386,17 @@ def image_slice_4d(source_fn,
             inference_array = source_array[:, :, :, best_frame]
         inference_img = sitk.GetImageFromArray(inference_array)
         inference_img.SetSpacing(source_spacing)
-        sitk.WriteImage(inference_img, source_fn)
+        sitk.WriteImage(sitk.DICOMOrient(inference_img, output_orientation),
+                        source_fn)
     else:
         inference_img = source_img
 
     return inference_img
 
 
-def clip_outliers(source_fn, clip_threshold):
+def clip_outliers(source_fn,
+                  clip_threshold,
+                  output_orientation):
     '''
     Function that clips pixels with values much above the mean of the image
     Parameters
@@ -405,7 +409,7 @@ def clip_outliers(source_fn, clip_threshold):
     ----------
     clipped image; written to disk
     '''
-    source_image = sitk.ReadImage(source_fn)
+    source_image = sitk.DICOMOrient(sitk.ReadImage(source_fn), 'LPS')
     source_spacing = source_image.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_image)
     source_shape = source_array.shape
@@ -422,7 +426,8 @@ def clip_outliers(source_fn, clip_threshold):
     source_image = sitk.GetImageFromArray(source_array)
     source_image.SetSpacing(source_spacing)
 
-    sitk.WriteImage(source_image, source_fn)
+    sitk.WriteImage(sitk.DICOMOrient(source_image, output_orientation),
+                    source_fn)
 
 
 def remove_small_holes_and_points(img):
@@ -469,6 +474,7 @@ def erode_img_by_slice(img,
     '''
     erode_filter = sitk.BinaryErodeImageFilter()
     erode_filter.SetKernelRadius(kernel_radius)
+    erode_filter.SetForegroundValue(1)
 
     img_spacing = img.GetSpacing()
     img_array = sitk.GetArrayFromImage(img)
