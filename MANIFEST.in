@@ -1,0 +1,2 @@
+include seg-for-4modalities/predict/scripts/*.hdf5
+include seg-for-4modalities/predict/scripts/*.joblib

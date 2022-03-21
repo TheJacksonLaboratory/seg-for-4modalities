@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: seg-for-4modalities
+Version: 0.0.7
+Summary: Mouse brain segmentation for four modalities - inference only
+Home-page: https://www.jax.org
+Author: Zachary Frohock
+Author-email: zachary.frohock@jax.org
+License: BSD 2-clause
+Description: Mouse brain segmentation for four modalities - inference only.                     Segments anatomical, DTI, NODDI, and fMRI image modalities.                     For full documentation, please see:                     https://github.com/TheJacksonLaboratory/seg-for-4modalities
+Platform: UNKNOWN

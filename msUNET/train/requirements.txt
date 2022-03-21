@@ -1,8 +1,0 @@
-python 3.9.5
-SimpleITK 2.0.2
-numpy 1.19.5
-tensorflow 2.5.0
-keras 2.5.0
-setuptools 49.6.0.post20210108
-talos 1.0.0
-pandas 1.2.4
