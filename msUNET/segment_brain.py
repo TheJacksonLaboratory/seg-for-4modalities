@@ -191,7 +191,7 @@ parser.add_argument(
     "--output_orientation",
     help="Orientation to which output mask will be cast",
     type=str,
-    default='RAS')
+    default='auto')
 
 opt = parser.parse_args()
 input_logging(opt, sys.argv)

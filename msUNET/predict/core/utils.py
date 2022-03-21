@@ -386,6 +386,8 @@ def image_slice_4d(source_fn,
             inference_array = source_array[:, :, :, best_frame]
         inference_img = sitk.GetImageFromArray(inference_array)
         inference_img.SetSpacing(source_spacing)
+        inference_img = sitk.Cast(source_img,
+                  source_img.GetPixelIDValue())
         sitk.WriteImage(sitk.DICOMOrient(inference_img, output_orientation),
                         source_fn)
     else:
@@ -410,6 +412,7 @@ def clip_outliers(source_fn,
     clipped image; written to disk
     '''
     source_image = sitk.DICOMOrient(sitk.ReadImage(source_fn), 'LPS')
+    original_dtype = source_image.GetPixelIDValue()
     source_spacing = source_image.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_image)
     source_shape = source_array.shape
@@ -425,6 +428,7 @@ def clip_outliers(source_fn,
     source_array = np.reshape(source_array, source_shape)
     source_image = sitk.GetImageFromArray(source_array)
     source_image.SetSpacing(source_spacing)
+    source_image = sitk.Cast(source_image, original_dtype)
 
     sitk.WriteImage(sitk.DICOMOrient(source_image, output_orientation),
                     source_fn)
@@ -516,3 +520,23 @@ def plot_intensity_comparison(intensity,
     plt.title('ROI Intensity - Z-Axis Correction')
     plt.legend(['Source Image', 'Z-Axis Corrected'])
     plt.savefig(filename)
+
+
+def get_orientation(img):
+    '''
+    Function that gets a three character string corresponding to the orientation of
+    the input image
+    Parameters
+    ----------
+    img: array like, sitk object (_, _, _)
+        3D SimpleITK object, must have been read from a .nii(.gz) file
+    Outputs
+    ----------
+    orientation: string, 3 characters
+        Orientation of input image
+    '''
+    orientationFilter = sitk.DICOMOrientImageFilter()
+    input_orientation = orientationFilter.GetOrientationFromDirectionCosines(
+        img.GetDirection())
+
+    return input_orientation

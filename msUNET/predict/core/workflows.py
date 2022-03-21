@@ -26,6 +26,7 @@ from ..scripts.segmentation import brain_seg_prediction
 from ..scripts.original_seg import brain_seg_prediction_original
 from .utils import get_suffix, write_backup_image, listdir_nohidden
 from .utils import image_slice_4d, clip_outliers, listdir_only, list_nii_only
+from .utils import get_orientation
 from .quality import quality_check
 
 
@@ -347,6 +348,10 @@ def segment_image_workflow(source_fn,
             '_segmentation' +
             ''.join(source_path_obj.suffixes)))
 
+    input_orientation = get_orientation(sitk.ReadImage(source_fn))
+    if output_orientation == 'auto':
+        output_orientation = input_orientation
+    
     inference_img = image_slice_4d(source_fn,
                                    best_frame=segmentation_frame,
                                    frame_location=frame_location,
