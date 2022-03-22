@@ -1,8 +1,8 @@
 .*
 !/.gitignore
+*.tar.gz
 *.sif
 *.tar
-*.gz
 *.pyc
 *.pyc
 msUNET/predict/core/__pycache__/utils.cpython-38.pyc
