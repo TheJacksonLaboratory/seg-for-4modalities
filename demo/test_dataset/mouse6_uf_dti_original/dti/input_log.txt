@@ -2,7 +2,7 @@ Working Directory:
 /Users/frohoz/Documents/GitHub/seg-for-4modalities
 
 Command Passed to segment_brain.py: 
-/Users/frohoz/Documents/GitHub/seg-for-4modalities/seg-for-4modalities/segment_brain.py -it dataset -i demo/test_dataset -oo RAS
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/seg-for-4modalities/segment_brain.py -it file -i demo/test_dataset/mouse6_uf_dti_original/dti/dti.nii.gz -oo RAS
 
 Parameters Used: 
 binary_hole_filling=True
@@ -13,8 +13,8 @@ frac_stride=0.125
 frame_location='frame_first'
 image_patch=128
 image_stride=16
-input='demo/test_dataset'
-input_type='dataset'
+input='demo/test_dataset/mouse6_uf_dti_original/dti/dti.nii.gz'
+input_type='file'
 likelihood_categorization=True
 model='model156_0.50.25_scan.hdf5'
 new_spacing=[0.08

@@ -19,6 +19,7 @@ def z_axis_correction(
         new_spacing,
         normalization_mode,
         output_orientation,
+        binary_hole_filling,
         target_size=None,
         frac_patch=None,
         frac_stride=None,
@@ -88,6 +89,7 @@ def z_axis_correction(
                 new_spacing,
                 normalization_mode,
                 output_orientation,
+                binary_hole_filling,
                 likelihood_categorization=likelihood_categorization)
         elif target_size is not None:
             brain_seg_prediction(
@@ -99,6 +101,7 @@ def z_axis_correction(
                 new_spacing,
                 normalization_mode,
                 output_orientation,
+                binary_hole_filling,
                 target_size,
                 likelihood_categorization=likelihood_categorization)
     if frac_patch is not None:
@@ -112,6 +115,7 @@ def z_axis_correction(
                 new_spacing,
                 normalization_mode,
                 output_orientation,
+                binary_hole_filling,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,
                 likelihood_categorization=likelihood_categorization)
@@ -125,6 +129,7 @@ def z_axis_correction(
                 new_spacing,
                 normalization_mode,
                 output_orientation,
+                binary_hole_filling,
                 target_size,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,

@@ -376,7 +376,8 @@ def image_slice_4d(source_fn,
     inference_img
         3D slice of input 4D image; written to disk
     '''
-    source_img = sitk.DICOMOrient(sitk.ReadImage(source_fn), 'LPS')
+    #source_img = sitk.DICOMOrient(sitk.ReadImage(source_fn), 'LPS')
+    source_img = sitk.ReadImage(source_fn)
     source_spacing = source_img.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_img)
     if len(source_array.shape) > 3:
@@ -386,12 +387,15 @@ def image_slice_4d(source_fn,
             inference_array = source_array[:, :, :, best_frame]
         inference_img = sitk.GetImageFromArray(inference_array)
         inference_img.SetSpacing(source_spacing)
-        inference_img = sitk.Cast(source_img,
-                  source_img.GetPixelIDValue())
+        if source_img.GetPixelIDValue() != inference_img.GetPixelIDValue():
+            inference_img = sitk.Cast(source_img,
+                            source_img.GetPixelIDValue())
         sitk.WriteImage(sitk.DICOMOrient(inference_img, output_orientation),
                         source_fn)
     else:
         inference_img = source_img
+        sitk.WriteImage(sitk.DICOMOrient(inference_img, output_orientation),
+                        source_fn)
 
     return inference_img
 
@@ -535,6 +539,12 @@ def get_orientation(img):
     orientation: string, 3 characters
         Orientation of input image
     '''
+    img_array = sitk.GetArrayFromImage(img)
+    if len(img_array.shape) > 3:
+        img_4d = img
+        img_array = img_array[0, :, :, :]
+        img = sitk.GetImageFromArray(img_array)
+        img.CopyInformation(img_4d[:, :, :, 0])
     orientationFilter = sitk.DICOMOrientImageFilter()
     input_orientation = orientationFilter.GetOrientationFromDirectionCosines(
         img.GetDirection())
