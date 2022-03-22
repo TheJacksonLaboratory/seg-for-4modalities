@@ -10,4 +10,4 @@
 
 module load singularity
 
-singularity exec --nv ../seg-for-4modalities/tensorflow2003.sif python3 ../seg-for-4modalities/segment_brain.py --input_type dataset --input test_dataset
+singularity exec --nv seg-for-4modalities/tensorflow2003.sif python -m seg-for-4modalities.segment_brain --input_type dataset --input demo/test_dataset
