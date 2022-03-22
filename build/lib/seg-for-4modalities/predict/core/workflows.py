@@ -119,7 +119,8 @@ def segment_file_structure_workflow(opt,
                         opt.target_size,
                         opt.segmentation_frame,
                         opt.frame_location,
-                        opt.output_orientation)
+                        opt.output_orientation,
+                        opt.binary_hole_filling)
                     quality_check = quality_check.append(quality_check_temp,
                                                          ignore_index=True)
                     print('Segmentation successful for the file: \n'
@@ -178,7 +179,8 @@ def segment_file_structure_workflow(opt,
                     opt.target_size,
                     opt.segmentation_frame,
                     opt.frame_location,
-                    opt.output_orientation)
+                    opt.output_orientation,
+                    opt.binary_hole_filling)
                 quality_check = quality_check.append(quality_check_temp,
                                                      ignore_index=True)
                 print('Segmentation successful for the file: \n'
@@ -238,7 +240,8 @@ def segment_file_structure_workflow(opt,
                 opt.target_size,
                 opt.segmentation_frame,
                 opt.frame_location,
-                opt.output_orientation)
+                opt.output_orientation,
+                opt.binary_hole_filling)
             print('Segmentation successful for the file: \n'
                   + str(source_fn),
                   file=sys.stderr)
@@ -278,7 +281,8 @@ def segment_image_workflow(source_fn,
                            target_size,
                            segmentation_frame,
                            frame_location,
-                           output_orientation):
+                           output_orientation,
+                           binary_hole_filling):
     '''
     Controls workflow for segmentation of a single image stack. Includes
     both segmentation and preprocessing
@@ -379,6 +383,7 @@ def segment_image_workflow(source_fn,
                     new_spacing,
                     normalization_mode,
                     output_orientation,
+                    binary_hole_filling,
                     likelihood_categorization=likelihood_categorization)
             elif constant_size:
                 z_axis_correction(
@@ -390,6 +395,7 @@ def segment_image_workflow(source_fn,
                     new_spacing,
                     normalization_mode,
                     output_orientation,
+                    binary_hole_filling,
                     target_size,
                     likelihood_categorization=likelihood_categorization)
         elif use_frac_patch:
@@ -403,6 +409,7 @@ def segment_image_workflow(source_fn,
                     new_spacing,
                     normalization_mode,
                     output_orientation,
+                    binary_hole_filling,
                     frac_patch=frac_patch,
                     frac_stride=frac_stride,
                     likelihood_categorization=likelihood_categorization)
@@ -416,6 +423,7 @@ def segment_image_workflow(source_fn,
                     new_spacing,
                     normalization_mode,
                     output_orientation,
+                    binary_hole_filling,
                     target_size,
                     frac_patch=frac_patch,
                     frac_stride=frac_stride,
@@ -462,6 +470,7 @@ def segment_image_workflow(source_fn,
                 new_spacing,
                 normalization_mode,
                 output_orientation,
+                binary_hole_filling,
                 likelihood_categorization=likelihood_categorization)
         elif constant_size:
             new_spacing = None
@@ -474,6 +483,7 @@ def segment_image_workflow(source_fn,
                 new_spacing,
                 normalization_mode,
                 output_orientation,
+                binary_hole_filling,
                 target_size,
                 likelihood_categorization=likelihood_categorization)
     if use_frac_patch:
@@ -487,6 +497,7 @@ def segment_image_workflow(source_fn,
                 new_spacing,
                 normalization_mode,
                 output_orientation,
+                binary_hole_filling,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,
                 likelihood_categorization=likelihood_categorization)
@@ -501,6 +512,7 @@ def segment_image_workflow(source_fn,
                 new_spacing,
                 normalization_mode,
                 output_orientation,
+                binary_hole_filling,
                 target_size,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,
@@ -526,7 +538,7 @@ def segment_image_workflow(source_fn,
             sitk.DICOMOrient(sitk.ReadImage(mask_fn), 'LPS'))
         qc_classifier = joblib.load(
             str(pathlib.Path(__file__).parent.resolve()).split('core')[0]
-            + 'scripts/quality_check_22822.joblib')
+            + 'scripts/quality_check_22822.joblib')  # Replace with more robust
         file_quality_check_df = quality_check(inference_array,
                                               mask_array,
                                               qc_classifier,

@@ -190,6 +190,13 @@ class CommandLineParams:
 		    help="Orientation to which output mask will be cast",
 		    type=str,
 		    default='auto')
+		parser.add_argument(
+			"-bhf",
+			"--binary_hole_filling",
+			help='Whether to fill small holes and remove \
+			isolated points in final masks',
+			type=str2bool,
+			default=True)
 
 		opt = parser.parse_args()
 		input_logging(opt, sys.argv)
@@ -218,6 +225,7 @@ class CommandLineParams:
 		self.segmentation_frame = opt.segmentation_frame
 		self.frame_location = opt.frame_location
 		self.output_orientation = opt.output_orientation
+		self.binary_hole_filling = opt.binary_hole_filling
 
 
 	def check_parameters(self):

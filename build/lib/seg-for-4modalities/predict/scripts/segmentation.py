@@ -20,6 +20,7 @@ def brain_seg_prediction(
         new_spacing,
         normalization_mode,
         output_orientation,
+        binary_hole_filling,
         target_size=None,
         frac_patch=None,
         frac_stride=None,
@@ -116,7 +117,10 @@ def brain_seg_prediction(
         interpolator=sitk.sitkNearestNeighbor,
         revert=True)
 
-    resampled_label_map = remove_small_holes_and_points(resampled_label_map)
+    if binary_hole_filling == True:
+        resampled_label_map = remove_small_holes_and_points(
+            resampled_label_map)
+    
     resampled_label_map = sitk.Cast(resampled_label_map,
                                     imgobj.GetPixelIDValue())
 
