@@ -2,7 +2,7 @@ Working Directory:
 /Users/frohoz/Documents/GitHub/seg-for-4modalities
 
 Command Passed to segment_brain.py: 
-/Users/frohoz/Documents/GitHub/seg-for-4modalities/seg-for-4modalities/segment_brain.py -it file -i demo/test_dataset/mouse6_uf_dti_original/dti/dti.nii.gz -oo RAS
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/seg-for-4modalities/segment_brain.py -it file -i demo/test_dataset/mouse6_uf_dti_original/dti/dti.nii.gz -oo RIA
 
 Parameters Used: 
 binary_hole_filling=True
@@ -21,7 +21,7 @@ new_spacing=[0.08
 0.08
 1]
 normalization_mode='by_img'
-output_orientation='RAS'
+output_orientation='RIA'
 qc_skip_edges=False
 quality_checks=True
 segmentation_frame=0
