@@ -524,29 +524,3 @@ def plot_intensity_comparison(intensity,
     plt.title('ROI Intensity - Z-Axis Correction')
     plt.legend(['Source Image', 'Z-Axis Corrected'])
     plt.savefig(filename)
-
-
-def get_orientation(img):
-    '''
-    Function that gets a three character string corresponding to the orientation of
-    the input image
-    Parameters
-    ----------
-    img: array like, sitk object (_, _, _)
-        3D SimpleITK object, must have been read from a .nii(.gz) file
-    Outputs
-    ----------
-    orientation: string, 3 characters
-        Orientation of input image
-    '''
-    img_array = sitk.GetArrayFromImage(img)
-    if len(img_array.shape) > 3:
-        img_4d = img
-        img_array = img_array[0, :, :, :]
-        img = sitk.GetImageFromArray(img_array)
-        img.CopyInformation(img_4d[:, :, :, 0])
-    orientationFilter = sitk.DICOMOrientImageFilter()
-    input_orientation = orientationFilter.GetOrientationFromDirectionCosines(
-        img.GetDirection())
-
-    return input_orientation

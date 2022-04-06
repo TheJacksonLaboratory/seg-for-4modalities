@@ -27,7 +27,8 @@ from ..scripts.segmentation import brain_seg_prediction
 from ..scripts.original_seg import brain_seg_prediction_original
 from .utils import get_suffix, write_backup_image, listdir_nohidden
 from .utils import image_slice_4d, clip_outliers, listdir_only, list_nii_only
-from .utils import get_orientation
+from .orientation import get_orientation_string, pre_orientation_adjust
+from .orientation import post_orientation_adjust
 from .quality import quality_check
 
 
@@ -120,7 +121,11 @@ def segment_file_structure_workflow(opt,
                         opt.segmentation_frame,
                         opt.frame_location,
                         opt.output_orientation,
-                        opt.binary_hole_filling)
+                        opt.binary_hole_filling,
+                        opt.mri_plane,
+                        opt.rotate_90_degrees,
+                        opt.flip_vertically,
+                        opt.long_axis)
                     quality_check = quality_check.append(quality_check_temp,
                                                          ignore_index=True)
                     print('Segmentation successful for the file: \n'
@@ -180,7 +185,11 @@ def segment_file_structure_workflow(opt,
                     opt.segmentation_frame,
                     opt.frame_location,
                     opt.output_orientation,
-                    opt.binary_hole_filling)
+                    opt.binary_hole_filling,
+                    opt.mri_plane,
+                    opt.rotate_90_degrees,
+                    opt.flip_vertically,
+                    opt.long_axis)
                 quality_check = quality_check.append(quality_check_temp,
                                                      ignore_index=True)
                 print('Segmentation successful for the file: \n'
@@ -241,7 +250,11 @@ def segment_file_structure_workflow(opt,
                 opt.segmentation_frame,
                 opt.frame_location,
                 opt.output_orientation,
-                opt.binary_hole_filling)
+                opt.binary_hole_filling,
+                opt.mri_plane,
+                opt.rotate_90_degrees,
+                opt.flip_vertically,
+                opt.long_axis)
             print('Segmentation successful for the file: \n'
                   + str(source_fn),
                   file=sys.stderr)
@@ -282,7 +295,11 @@ def segment_image_workflow(source_fn,
                            segmentation_frame,
                            frame_location,
                            output_orientation,
-                           binary_hole_filling):
+                           binary_hole_filling,
+                           mri_plane,
+                           rotate_90_degrees,
+                           flip_vertically,
+                           major_axis):
     '''
     Controls workflow for segmentation of a single image stack. Includes
     both segmentation and preprocessing
@@ -353,10 +370,11 @@ def segment_image_workflow(source_fn,
             '_segmentation' +
             ''.join(source_path_obj.suffixes)))
 
-    input_orientation = get_orientation(sitk.ReadImage(source_fn))
+    input_orientation = get_orientation_string(sitk.ReadImage(source_fn))
+
     if output_orientation == 'auto':
         output_orientation = input_orientation
-    
+
     inference_img = image_slice_4d(source_fn,
                                    best_frame=segmentation_frame,
                                    frame_location=frame_location,
@@ -364,6 +382,12 @@ def segment_image_workflow(source_fn,
     clip_outliers(source_fn,
                   clip_threshold=20,
                   output_orientation=output_orientation)
+
+    input_major_axis = pre_orientation_adjust(source_fn,
+                                              mri_plane,
+                                              rotate_90_degrees,
+                                              flip_vertically,
+                                              major_axis)
 
     if z_axis_correction_check == 'True':
         print('Performing z-axis correction')
@@ -517,6 +541,13 @@ def segment_image_workflow(source_fn,
                 frac_patch=frac_patch,
                 frac_stride=frac_stride,
                 likelihood_categorization=likelihood_categorization)
+
+    shutil.copyfile(mask_fn, 'un-reoriented_mask.nii')
+    post_orientation_adjust(mask_fn,
+                            mri_plane,
+                            rotate_90_degrees,
+                            flip_vertically,
+                            input_major_axis)
 
     shutil.copyfile(source_fn, segmentation_fn)
     shutil.copyfile(original_fn, source_fn)

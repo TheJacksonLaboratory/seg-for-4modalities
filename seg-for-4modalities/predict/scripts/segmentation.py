@@ -71,7 +71,7 @@ def brain_seg_prediction(
                          custom_objects={'dice_coef_loss': dice_coef_loss,
                                          'dice_coef': dice_coef})
 
-    imgobj = sitk.DICOMOrient(sitk.ReadImage(input_path),'LPS')
+    imgobj = sitk.DICOMOrient(sitk.ReadImage(input_path), 'LPS')
     if target_size is None:
         resampled_imgobj = resample_img(imgobj,
                                         new_spacing=new_spacing,
@@ -83,6 +83,10 @@ def brain_seg_prediction(
     img_array = sitk.GetArrayFromImage(resampled_imgobj)
 
     normed_array = min_max_normalization(img_array, normalization_mode)
+
+    print('Image has {} slices'.format(normed_array.shape[0]))
+    print('Each slice has dimensions: {}'.format(
+        tuple(normed_array.shape[1:])))
 
     if frac_patch is None:
         out_label_img, out_likelihood_img = out_LabelHot_map_2D(
@@ -120,7 +124,7 @@ def brain_seg_prediction(
     if binary_hole_filling == True:
         resampled_label_map = remove_small_holes_and_points(
             resampled_label_map)
-    
+
     resampled_label_map = sitk.Cast(resampled_label_map,
                                     imgobj.GetPixelIDValue())
 

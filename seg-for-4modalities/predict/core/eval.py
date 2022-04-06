@@ -63,6 +63,15 @@ def out_LabelHot_map_2D(
         strides[1] = int(np.floor(img_shape[1] * frac_stride))
         strides[2] = int(np.floor(img_shape[2] * frac_stride))
 
+    if (img.shape[0] < patch_dims[0]) or (img.shape[1] < patch_dims[1]):
+        raise ValueError("The values for patch dimensions are incompatible \
+            with resampled image dimensions. The value of the patch \
+            dimension is: {0}, and the value of the image dimension is: {1}\
+            . Generally this error appears when the image dimensions are \
+            too small, meaning no patches can be generated. If using target \
+            size, increase the target dimensions. If not, decrease the value \
+            of in-slice spacing values.")
+
     categorical_map = np.zeros((n_class, length, col, row), dtype=np.uint8)
     likelihood_map = np.zeros((length, col, row), dtype=np.float32)
     likelihood_map_max = np.zeros((length, col, row), dtype=np.float32)

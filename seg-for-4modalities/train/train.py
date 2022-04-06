@@ -340,12 +340,12 @@ def main():
     parser.add_argument(
         "-tpath",
         "--training_data_path",
-        default='dataset_fulltrain_noddival/training',
+        default='stain_dataset/data',
         required=False)
     parser.add_argument(
         "-mpath",
         "--training_mask_path",
-        default='dataset_fulltrain_noddival/masks',
+        default='stain_dataset/masks',
         required=False)
     parser.add_argument(
         "-hspace",
@@ -367,7 +367,7 @@ def main():
     parser.add_argument(
         "-v",
         "--validation_split",
-        default=0.0418,
+        default=0.20,
         type=float,
         required=False)
     parser.add_argument("-n",
@@ -406,8 +406,8 @@ def main():
         "-ts",
         "--target_size",
         default=[
-            64,
-            64,
+            128,
+            128,
             None],
         required=False)
     parser.add_argument(
@@ -416,7 +416,7 @@ def main():
         default=True,
         required=False)
     parser.add_argument("-fp", "--frac_patch", default=0.75, required=False)
-    parser.add_argument("-fs", "--frac_stride", default=0.25, required=False)
+    parser.add_argument("-fs", "--frac_stride", default=0.125, required=False)
     parser.add_argument(
         "-ia",
         "--in_place_augmentation",
@@ -432,7 +432,7 @@ def main():
         "--modality_weight",
         default='noddi',
         required=False)
-    parser.add_argument("-wf", "--weight_factor", default=15, required=False)
+    parser.add_argument("-wf", "--weight_factor", default=1, required=False)
     args = parser.parse_args()
     print(args)
     # Determine how many gpu are available for parallel processing purposes
