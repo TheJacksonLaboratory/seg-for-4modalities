@@ -189,7 +189,8 @@ class CommandLineParams:
             "--output_orientation",
             help="Orientation to which output mask will be cast",
             type=str,
-            default='auto')
+            default='auto',
+            choices=['auto'])
         parser.add_argument(
             '-io',
             '--internal_orientation',
@@ -208,7 +209,7 @@ class CommandLineParams:
             "--mri_plane",
             help="MRI plane of input images",
             type=str,
-            choices=['saggital',
+            choices=['sagittal',
                      'axial',
                      'coronal'],
             default='axial')

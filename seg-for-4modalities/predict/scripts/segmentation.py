@@ -71,7 +71,7 @@ def brain_seg_prediction(
                          custom_objects={'dice_coef_loss': dice_coef_loss,
                                          'dice_coef': dice_coef})
 
-    imgobj = sitk.DICOMOrient(sitk.ReadImage(input_path), 'LPS')
+    imgobj = sitk.ReadImage(input_path)
     if target_size is None:
         resampled_imgobj = resample_img(imgobj,
                                         new_spacing=new_spacing,
@@ -128,9 +128,8 @@ def brain_seg_prediction(
     resampled_label_map = sitk.Cast(resampled_label_map,
                                     imgobj.GetPixelIDValue())
 
-    sitk.WriteImage(sitk.DICOMOrient(resampled_label_map, output_orientation),
-                    output_path)
-    sitk.WriteImage(sitk.DICOMOrient(resampled_likelihood_map,
-                                     output_orientation),
-                    output_path.split('.nii')[0] +
-                    '_likelihood.nii')
+
+    sitk.WriteImage(resampled_label_map, output_path)
+    sitk.WriteImage(resampled_likelihood_map,
+                    output_path.split('.nii')[0] 
+                    + '_likelihood.nii')

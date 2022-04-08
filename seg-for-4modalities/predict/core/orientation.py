@@ -34,6 +34,31 @@ def get_orientation_string(img):
     return input_orientation
 
 
+def get_image_information(img_fn):
+    '''
+    Function that gets most important pieces of image information
+    Parameters
+    ----------
+    img_fn: full path to nifti image file
+    Ouputs
+    ----------
+    information_dict: dictionary
+        Contains three key-value pairs for input image direction, spacing,
+        and origin
+    '''
+    img_obj = sitk.ReadImage(img_fn)
+    direction = img_obj.GetDirection()
+    origin = img_obj.GetOrigin()
+    spacing = img_obj.GetSpacing()
+
+    information_dict = {'direction': direction,
+                        'origin': origin,
+                        'spacing': spacing}
+
+    return information_dict
+
+
+
 def flip_vertically(sitk_obj):
     '''
     Function that flips a 3D image such that each slice is flipped vertically
@@ -65,14 +90,14 @@ def rotate_90(sitk_obj):
     return permutation_filter.Execute(sitk_obj)
 
 
-def saggital_to_axial(sitk_obj, long_axis, flip_vertical):
+def sagittal_to_axial(sitk_obj, long_axis, flip_vertical):
     '''
-    Function that reslices MRI scans with saggital slices to axial slices
+    Function that reslices MRI scans with sagittal slices to axial slices
     Parameters
     ----------
     sitk_obj: array like, sitk object (_, _, _)
         3D SimpleITK object, must have been read from a .nii(.gz) file.
-        Must have saggital slices.
+        Must have sagittal slices.
     long_axis: string, choices = ['horizontal', 'vertical']
         Slice-wise axis to which the long edge of the brain is aligned
     flip_vertical: bool
@@ -83,12 +108,12 @@ def saggital_to_axial(sitk_obj, long_axis, flip_vertical):
         3D SimpleITK object, resliced to axial plane
     '''
     permutation_filter = sitk.PermuteAxesImageFilter()
-    saggital_obj = sitk_obj
+    sagittal_obj = sitk_obj
     if long_axis == 'vertical':
         permutation_filter.SetOrder((2, 0, 1))
     if long_axis == 'horizontal':
         permutation_filter.SetOrder((2, 1, 0))
-    axial_obj = permutation_filter.Execute(saggital_obj)
+    axial_obj = permutation_filter.Execute(sagittal_obj)
     if flip_vertical == True:
         axial_obj = sitk.Flip(axial_obj, [False, True, False])    
     axial_obj = sitk.Flip(axial_obj, [False, False, True])
@@ -158,9 +183,9 @@ def axial_to_coronal(sitk_obj, long_axis, flip_vertical):
     return coronal_obj
 
 
-def axial_to_saggital(sitk_obj, long_axis, flip_vertical):
+def axial_to_sagittal(sitk_obj, long_axis, flip_vertical):
     '''
-    Function that reslices MRI scans with axial slices to saggital slices
+    Function that reslices MRI scans with axial slices to sagittal slices
     Parameters
     ----------
     sitk_obj: array like, sitk object (_, _, _)
@@ -173,7 +198,7 @@ def axial_to_saggital(sitk_obj, long_axis, flip_vertical):
     Outputs
     ----------
     axial_obj: array_like, sitk object (_, _, _)
-        3D SimpleITK object, resliced to saggital plane
+        3D SimpleITK object, resliced to sagittal plane
     '''
     permutation_filter = sitk.PermuteAxesImageFilter()
     axial_obj = sitk_obj
@@ -184,9 +209,9 @@ def axial_to_saggital(sitk_obj, long_axis, flip_vertical):
         permutation_filter.SetOrder((1, 2, 0))
     if long_axis == 'horizontal':
         permutation_filter.SetOrder((2, 1, 0))
-    saggital_obj = permutation_filter.Execute(axial_obj)
+    sagittal_obj = permutation_filter.Execute(axial_obj)
 
-    return saggital_obj
+    return sagittal_obj
 
 
 def getLargestConnectedComponent(data):
@@ -286,10 +311,10 @@ def pre_orientation_adjust(source_fn,
             source_img = rotate_90(source_img)
         if vertical_flip is True:
             source_img = flip_vertically(source_img)
-    elif mri_plane == 'saggital':
+    elif mri_plane == 'sagittal':
         if major_axis == 'auto':
             major_axis = get_mri_major_axis(source_img)
-        source_img = saggital_to_axial(source_img,
+        source_img = sagittal_to_axial(source_img,
                                        major_axis,
                                        vertical_flip)
     elif mri_plane == 'coronal':
@@ -308,7 +333,8 @@ def post_orientation_adjust(mask_fn,
                             mri_plane,
                             rotate_90_degrees,
                             vertical_flip,
-                            major_axis):
+                            major_axis,
+                            input_image_information):
 
     mask_img = sitk.ReadImage(mask_fn)
 
@@ -317,13 +343,17 @@ def post_orientation_adjust(mask_fn,
             mask_img = flip_vertically(mask_img)
         if rotate_90_degrees is True:
             mask_img = rotate_90(mask_img)
-    elif mri_plane == 'saggital':
-        mask_img = axial_to_saggital(mask_img,
+    elif mri_plane == 'sagittal':
+        mask_img = axial_to_sagittal(mask_img,
                                      major_axis,
                                      vertical_flip)
     elif mri_plane == 'coronal':
         mask_img = axial_to_coronal(mask_img,
                                     major_axis,
                                     vertical_flip)
+
+    mask_img.SetDirection(input_image_information['direction'])
+    mask_img.SetOrigin(input_image_information['origin'])
+    mask_img.SetSpacing(input_image_information['spacing'])
 
     sitk.WriteImage(mask_img, mask_fn)

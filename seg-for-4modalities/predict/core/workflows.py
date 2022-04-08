@@ -11,7 +11,6 @@ segment_image_workflow(...) handles segmentation workflow for one
                             single image in .nii format
 '''
 
-import glob
 import os
 import joblib
 import shutil
@@ -25,10 +24,10 @@ from pathlib import PurePath
 from .corrections import y_axis_correction, z_axis_correction
 from ..scripts.segmentation import brain_seg_prediction
 from ..scripts.original_seg import brain_seg_prediction_original
-from .utils import get_suffix, write_backup_image, listdir_nohidden
+from .utils import get_suffix, write_backup_image
 from .utils import image_slice_4d, clip_outliers, listdir_only, list_nii_only
 from .orientation import get_orientation_string, pre_orientation_adjust
-from .orientation import post_orientation_adjust
+from .orientation import post_orientation_adjust, get_image_information
 from .quality import quality_check
 
 
@@ -371,6 +370,7 @@ def segment_image_workflow(source_fn,
             ''.join(source_path_obj.suffixes)))
 
     input_orientation = get_orientation_string(sitk.ReadImage(source_fn))
+    input_image_information = get_image_information(source_fn)
 
     if output_orientation == 'auto':
         output_orientation = input_orientation
@@ -542,12 +542,18 @@ def segment_image_workflow(source_fn,
                 frac_stride=frac_stride,
                 likelihood_categorization=likelihood_categorization)
 
-    shutil.copyfile(mask_fn, 'un-reoriented_mask.nii')
     post_orientation_adjust(mask_fn,
                             mri_plane,
                             rotate_90_degrees,
                             flip_vertically,
-                            input_major_axis)
+                            input_major_axis,
+                            input_image_information)
+    post_orientation_adjust(mask_fn.split('.nii')[0] + '_likelihood.nii',
+                            mri_plane,
+                            rotate_90_degrees,
+                            flip_vertically,
+                            input_major_axis,
+                            input_image_information)
 
     shutil.copyfile(source_fn, segmentation_fn)
     shutil.copyfile(original_fn, source_fn)
@@ -565,8 +571,7 @@ def segment_image_workflow(source_fn,
         print('Performing post-inference quality checks: ' + source_fn)
 
         inference_array = sitk.GetArrayFromImage(inference_img)
-        mask_array = sitk.GetArrayFromImage(
-            sitk.DICOMOrient(sitk.ReadImage(mask_fn), 'LPS'))
+        mask_array = sitk.GetArrayFromImage(sitk.ReadImage(mask_fn))
         qc_classifier = joblib.load(
             str(pathlib.Path(__file__).parent.resolve()).split('core')[0]
             + 'scripts/quality_check_22822.joblib')  # Replace with more robust

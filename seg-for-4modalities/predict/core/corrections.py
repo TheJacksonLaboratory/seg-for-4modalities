@@ -5,7 +5,6 @@ Functions handling pre-inference image processing
 
 import SimpleITK as sitk
 import numpy as np
-import matplotlib.pyplot as plt
 from ..scripts.segmentation import brain_seg_prediction
 from .utils import erode_img_by_slice, plot_intensity_comparison
 
@@ -136,12 +135,11 @@ def z_axis_correction(
                 likelihood_categorization=likelihood_categorization)
 
     eroded_mask_array, eroded_mask = \
-        erode_img_by_slice(sitk.DICOMOrient(sitk.ReadImage(prelim_mask_fn), 'LPS'),
+        erode_img_by_slice(sitk.ReadImage(prelim_mask_fn),
                            kernel_radius=5)
-    sitk.WriteImage(sitk.DICOMOrient(eroded_mask, output_orientation),
-                    eroded_mask_fn)
+    sitk.WriteImage(eroded_mask, eroded_mask_fn)
 
-    source_img = sitk.DICOMOrient(sitk.ReadImage(input_fn), 'LPS')
+    source_img = sitk.ReadImage(input_fn)
     source_spacing = source_img.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_img)
 
@@ -173,8 +171,7 @@ def z_axis_correction(
     z_axis_corr_img = sitk.GetImageFromArray(source_array)
     z_axis_corr_img.SetSpacing(source_spacing)
 
-    sitk.WriteImage(sitk.DICOMOrient(z_axis_corr_img, output_orientation),
-                    output_fn)
+    sitk.WriteImage(z_axis_corr_img, output_fn)
 
     # Build a visualization that will go into the source folder
     plot_intensity_comparison(slice_intensity,
@@ -212,7 +209,7 @@ def y_axis_correction(
         Source image after n4b (y-axis) corrections
     ----------
     '''
-    source_img = sitk.DICOMOrient(sitk.ReadImage(input_fn, sitk.sitkFloat32), 'LPS')
+    source_img = sitk.ReadImage(input_fn, sitk.sitkFloat32)
     source_spacing = source_img.GetSpacing()
     source_direction = source_img.GetDirection()
     source_array = sitk.GetArrayFromImage(source_img)
@@ -239,5 +236,4 @@ def y_axis_correction(
     n4b_corrected_img.SetSpacing(source_spacing)
     n4b_corrected_img.SetDirection(source_direction)
 
-    sitk.WriteImage(sitk.DICOMOrient(n4b_corrected_img, output_orientation),
-                    output_fn)
+    sitk.WriteImage(n4b_corrected_img, output_fn)

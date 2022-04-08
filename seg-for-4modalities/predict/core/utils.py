@@ -86,8 +86,9 @@ def resample_img(
         target_size=None,
         revert=False):
     '''
-    TODO: Rewrite for robustness to different dimension orders
-    Function that resamples input images for compatibility with inference model
+    Function that resamples input images for compatibility with inference model.
+    Assumes that the fist index corresponds to slices, remaining two indices describe
+    the shape of each slice.
     Parameters:
         imgobj: array like (_, _, _)
         SimpleITK image object corresponding to raw data
@@ -376,7 +377,6 @@ def image_slice_4d(source_fn,
     inference_img
         3D slice of input 4D image; written to disk
     '''
-    #source_img = sitk.DICOMOrient(sitk.ReadImage(source_fn), 'LPS')
     source_img = sitk.ReadImage(source_fn)
     source_spacing = source_img.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_img)
@@ -390,11 +390,11 @@ def image_slice_4d(source_fn,
         if source_img.GetPixelIDValue() != inference_img.GetPixelIDValue():
             inference_img = sitk.Cast(source_img,
                             source_img.GetPixelIDValue())
-        sitk.WriteImage(sitk.DICOMOrient(inference_img, output_orientation),
+        sitk.WriteImage(inference_img,
                         source_fn)
     else:
         inference_img = source_img
-        sitk.WriteImage(sitk.DICOMOrient(inference_img, output_orientation),
+        sitk.WriteImage(inference_img,
                         source_fn)
 
     return inference_img
@@ -415,7 +415,7 @@ def clip_outliers(source_fn,
     ----------
     clipped image; written to disk
     '''
-    source_image = sitk.DICOMOrient(sitk.ReadImage(source_fn), 'LPS')
+    source_image = sitk.ReadImage(source_fn)
     original_dtype = source_image.GetPixelIDValue()
     source_spacing = source_image.GetSpacing()
     source_array = sitk.GetArrayFromImage(source_image)
@@ -434,7 +434,7 @@ def clip_outliers(source_fn,
     source_image.SetSpacing(source_spacing)
     source_image = sitk.Cast(source_image, original_dtype)
 
-    sitk.WriteImage(sitk.DICOMOrient(source_image, output_orientation),
+    sitk.WriteImage(source_image,
                     source_fn)
 
 
