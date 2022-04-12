@@ -370,8 +370,6 @@ def segment_image_workflow(source_fn,
             ''.join(source_path_obj.suffixes)))
 
     input_orientation = get_orientation_string(sitk.ReadImage(source_fn))
-    input_image_information = get_image_information(source_fn)
-
     if output_orientation == 'auto':
         output_orientation = input_orientation
 
@@ -379,6 +377,9 @@ def segment_image_workflow(source_fn,
                                    best_frame=segmentation_frame,
                                    frame_location=frame_location,
                                    output_orientation=output_orientation)
+
+    input_image_information = get_image_information(source_fn)
+
     clip_outliers(source_fn,
                   clip_threshold=20,
                   output_orientation=output_orientation)

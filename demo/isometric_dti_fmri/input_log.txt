@@ -1,0 +1,40 @@
+Working Directory: 
+/Users/frohoz/Documents/GitHub/seg-for-4modalities
+
+Command Passed to segment_brain.py: 
+/Users/frohoz/Documents/GitHub/seg-for-4modalities/seg-for-4modalities/segment_brain.py -it dataset -i demo/isometric_dti_fmri/ --mri_plane coronal -fv True -cs True -ts 188 188 96 -ufp True -fs 0.125
+
+Parameters Used: 
+binary_hole_filling=True
+channel_location='channels_last'
+constant_size=True
+flip_vertically=True
+frac_patch=0.5
+frac_stride=0.125
+frame_location='frame_first'
+image_patch=128
+image_stride=16
+input='demo/isometric_dti_fmri/'
+input_type='dataset'
+likelihood_categorization=True
+long_axis='auto'
+model='model156_0.50.25_scan.hdf5'
+mri_plane='coronal'
+new_spacing=[0.08
+0.08
+1]
+normalization_mode='by_img'
+output_orientation='auto'
+qc_skip_edges=False
+quality_checks=True
+rotate_90_degrees=False
+segmentation_frame=0
+skip_preprocessing=False
+target_size=[188
+188
+96]
+threshold=0.3
+use_frac_patch=True
+y_axis_correction='False'
+y_axis_mask=True
+z_axis_correction='False'
