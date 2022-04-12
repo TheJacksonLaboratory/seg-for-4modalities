@@ -63,7 +63,8 @@ def main():
     save_quality_check(quality_check_results,
                        opt.input_type,
                        opt.input,
-                       opt.quality_checks)
+                       opt.quality_checks,
+                       opt.mri_plane)
 
     sys.exit(0)
 

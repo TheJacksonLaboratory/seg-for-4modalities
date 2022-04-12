@@ -302,7 +302,8 @@ def input_logging(opt, input_command):
 def save_quality_check(quality_check,
                        input_type,
                        input_path,
-                       do_quality_check):
+                       do_quality_check,
+                       mri_plane):
     '''
     Function that saves quality check dataframe to disk
     Parameters
@@ -317,6 +318,12 @@ def save_quality_check(quality_check,
     ----------
     quality_check; written to disk
     '''
+    if do_quality_check == False:
+        return
+    if mri_plane != 'axial' and do_quality_check == True:
+        print('MRI plane is not axial - unable to perform quality checking')
+        return
+
     if len(quality_check) > 0:
         input_path_obj = PurePath(input_path)
         if input_type == 'file':
@@ -333,7 +340,7 @@ def save_quality_check(quality_check,
             quality_check.to_csv(input_path +
                                  '/quality_check.csv',
                                  index=False)
-    elif do_quality_check == True:
+    else:
         print('No slices in need of manual review - no quality_check.csv written.')
 
 
