@@ -368,6 +368,14 @@ def segment_image_workflow(source_fn,
             source_path_obj.stem.split('.')[0] +
             '_segmentation' +
             ''.join(source_path_obj.suffixes)))
+    segmentation_mask_fn = str(source_path_obj.with_name(
+            source_path_obj.stem.split('.')[0] +
+            '_segmentation_mask' +
+            ''.join(source_path_obj.suffixes)))
+    segmentation_likelihood_fn = str(source_path_obj.with_name(
+            source_path_obj.stem.split('.')[0] +
+            '_segmentation_mask_likelihood' +
+            ''.join(source_path_obj.suffixes)))
 
     input_orientation = get_orientation_string(sitk.ReadImage(source_fn))
     if output_orientation == 'auto':
@@ -543,6 +551,10 @@ def segment_image_workflow(source_fn,
                 frac_stride=frac_stride,
                 likelihood_categorization=likelihood_categorization)
 
+    shutil.copyfile(mask_fn, segmentation_mask_fn)
+    shutil.copyfile(mask_fn.split('.nii')[0] + '_likelihood.nii',
+                    segmentation_likelihood_fn)
+
     post_orientation_adjust(mask_fn,
                             mri_plane,
                             rotate_90_degrees,
@@ -575,7 +587,7 @@ def segment_image_workflow(source_fn,
         mask_array = sitk.GetArrayFromImage(sitk.ReadImage(mask_fn))
         qc_classifier = joblib.load(
             str(pathlib.Path(__file__).parent.resolve()).split('core')[0]
-            + 'scripts/quality_check_41222.joblib')  # Replace with more robust
+            + 'scripts/quality_check_41222_svm_only.joblib')  # Replace with more robust
         file_quality_check_df = quality_check(inference_array,
                                               mask_array,
                                               qc_classifier,

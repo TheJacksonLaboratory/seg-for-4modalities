@@ -62,7 +62,8 @@ def main():
 
     save_quality_check(quality_check_results,
                        opt.input_type,
-                       opt.input)
+                       opt.input,
+                       opt.quality_checks)
 
     sys.exit(0)
 

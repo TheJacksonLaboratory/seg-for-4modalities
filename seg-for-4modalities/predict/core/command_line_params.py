@@ -197,7 +197,7 @@ class CommandLineParams:
             help='Whether to fill small holes and remove \
             isolated points in final masks',
             type=str2bool,
-            default=True)
+            default=False)
         parser.add_argument(
             "-mp",
             "--mri_plane",

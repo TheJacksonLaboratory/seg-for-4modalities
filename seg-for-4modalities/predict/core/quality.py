@@ -161,13 +161,15 @@ def otsu_snr_check(current_slice):
     otsu_background = np.where((otsu_array == 0) | (otsu_array == 1),
                                otsu_array ^ 1, otsu_array)
 
-    masked_array = np.nan_to_num(np.multiply(current_slice, otsu_array))
-    masked_array[masked_array == 0] = np.nan
+    masked_array = np.ma.masked_invalid(np.multiply(current_slice, otsu_array))
+    masked_array = masked_array.astype(np.float32)
+    #masked_array[np.argwhere(masked_array == 0.)] = np.nan
     masked_array_mean = np.nanmean(masked_array)
     masked_array_std = np.nanstd(masked_array)/np.nanmean(masked_array)
 
-    masked_background = np.multiply(current_slice, otsu_background)
-    masked_background[masked_background == 0] = np.nan
+    masked_background = np.ma.masked_invalid(np.multiply(current_slice, otsu_background))
+    masked_background = masked_background.astype(np.float32)
+    #masked_background[np.argwhere(masked_background == 0.)] = np.nan
     with suppress_stdout():
         masked_background_mean = np.nanmean(masked_background)
     masked_background_std = np.nanstd(masked_background) \
@@ -573,7 +575,6 @@ def quality_check(source_array,
         Structure containing information about which slices this supplementary
         method flagged for manual review
     '''
-    qc_debug = False
     file_quality_check = pd.DataFrame(columns=['filename',
                                                'slice_index',
                                                'notes'])
@@ -619,7 +620,7 @@ def quality_check(source_array,
                                       roundness,
                                       elongation]).reshape(1, -1)
             prediction = (qc_classifier.predict_proba(
-                feature_array)[:, 1] >= 0.69).astype(bool)
+                feature_array)[:, 1] >= 0.93).astype(bool)
             if prediction == False:
                 notes = 'Model Classified'
         except Exception as e:
@@ -639,6 +640,7 @@ def quality_check(source_array,
             file_quality_check = file_quality_check.append(slice_df,
                                                            ignore_index=True)
 
+        qc_debug = False
         if qc_debug is True:
             qc_feature_list.append(feature_array)
 

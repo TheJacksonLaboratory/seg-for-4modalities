@@ -301,7 +301,8 @@ def input_logging(opt, input_command):
 
 def save_quality_check(quality_check,
                        input_type,
-                       input_path):
+                       input_path,
+                       do_quality_check):
     '''
     Function that saves quality check dataframe to disk
     Parameters
@@ -332,6 +333,8 @@ def save_quality_check(quality_check,
             quality_check.to_csv(input_path +
                                  '/quality_check.csv',
                                  index=False)
+    elif do_quality_check == True:
+        print('No slices in need of manual review - no quality_check.csv written.')
 
 
 def write_backup_image(source_fn):
