@@ -574,7 +574,7 @@ def segment_image_workflow(source_fn,
         mask_array = sitk.GetArrayFromImage(sitk.ReadImage(mask_fn))
         qc_classifier = joblib.load(
             str(pathlib.Path(__file__).parent.resolve()).split('core')[0]
-            + 'scripts/quality_check_22822.joblib')  # Replace with more robust
+            + 'scripts/quality_check_41222.joblib')  # Replace with more robust
         file_quality_check_df = quality_check(inference_array,
                                               mask_array,
                                               qc_classifier,
