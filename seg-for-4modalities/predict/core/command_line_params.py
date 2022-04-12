@@ -192,12 +192,6 @@ class CommandLineParams:
             default='auto',
             choices=['auto'])
         parser.add_argument(
-            '-io',
-            '--internal_orientation',
-            help="Orientation to which images are cast internally",
-            type=str,
-            default='RIA')
-        parser.add_argument(
             "-bhf",
             "--binary_hole_filling",
             help='Whether to fill small holes and remove \
@@ -262,7 +256,6 @@ class CommandLineParams:
         self.frame_location = opt.frame_location
         self.output_orientation = opt.output_orientation
         self.binary_hole_filling = opt.binary_hole_filling
-        self.internal_orientation = opt.internal_orientation
         self.mri_plane = opt.mri_plane
         self.rotate_90_degrees = opt.rotate_90_degrees
         self.flip_vertically = opt.flip_vertically
