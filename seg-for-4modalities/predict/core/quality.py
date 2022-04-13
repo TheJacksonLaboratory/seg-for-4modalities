@@ -1,3 +1,4 @@
+# Copyright The Jackson Laboratory, 2022
 # author: Zachary Frohock
 '''
 Functions pertaining to post-inference quality checks

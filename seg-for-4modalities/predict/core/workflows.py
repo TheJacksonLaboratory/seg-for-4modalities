@@ -1,3 +1,4 @@
+# Copyright The Jackson Laboratory, 2022
 # author: Zachary Frohock
 '''
 Functions that wrap segmentation workflow

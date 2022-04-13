@@ -1,3 +1,4 @@
+# Copyright The Jackson Laboratory, 2022
 # author: Zachary Frohock
 # Built from framework of https://github.com/CAMRIatUNC/RodentMRISkullStripping
 '''

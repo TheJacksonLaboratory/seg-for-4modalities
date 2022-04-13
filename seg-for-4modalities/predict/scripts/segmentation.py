@@ -1,3 +1,4 @@
+# Copyright The Jackson Laboratory, 2022
 # author: Zachary Frohock
 '''
 Function that performs segmentation for a single file of .nii filetype

@@ -1,3 +1,4 @@
+# Copyright The Jackson Laboratory, 2022
 # authors: Zachary Frohock
 '''
 Implimentation of the class CommandLineParams

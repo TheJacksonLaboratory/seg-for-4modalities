@@ -1,2 +1,0 @@
-Segmentation successful for the file: 
-demo/isometric_dti_fmri/LC_Townes_0002_MUS00045155_1/dwi/dwi_b0.nii.gz
