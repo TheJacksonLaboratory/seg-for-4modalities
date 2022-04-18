@@ -10,3 +10,4 @@ find ./test_dataset/ -maxdepth 3 -type f -name "quality_check.csv" -delete
 find ./test_dataset/ -maxdepth 3 -type f -name "input_log.txt" -delete
 find ./test_dataset/ -maxdepth 3 -type f -name "segmentation_log.txt" -delete
 find ./test_dataset/ -maxdepth 3 -type f -name "*segmentation.nii*" -delete
+find ./test_dataset/ -maxdepth 3 -type f -name "*segmentation_mask.nii*" -delete

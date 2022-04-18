@@ -1,0 +1,8 @@
+name: ssif-aim2-v1.0.0
+channels:
+ - defaults
+dependencies:
+ - python=3.8.8
+ - pip
+ - pip:
+   - ./dist/seg_for_4modalities-1.0.0-py3-none-any.whl

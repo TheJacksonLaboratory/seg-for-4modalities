@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.0.7' 
+VERSION = '1.0.0' 
 DESCRIPTION = 'Mouse brain segmentation for four modalities - inference only'
 LONG_DESCRIPTION = 'Mouse brain segmentation for four modalities - inference only. \
                     Segments anatomical, DTI, NODDI, and fMRI image modalities. \
@@ -10,9 +10,7 @@ LONG_DESCRIPTION = 'Mouse brain segmentation for four modalities - inference onl
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
-# Setting up
 setup(
-       # the name must match the folder name 'verysimplemodule'
         name="seg-for-4modalities", 
         version=VERSION,
         url='https://www.jax.org',
