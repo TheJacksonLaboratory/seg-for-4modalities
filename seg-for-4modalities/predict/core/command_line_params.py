@@ -103,6 +103,12 @@ class CommandLineParams:
                   If true, will output a list of IDs + slices that have an issue",
             type=str2bool,
             default=True)
+        parse.add_argument(
+            "-qt",
+            "--quality_threshold",
+            help="Score threshold for flagging slices for manual review",
+            type=float,
+            default=0.93)
         parser.add_argument(
             "-se",
             "--qc_skip_edges",
@@ -261,6 +267,7 @@ class CommandLineParams:
         self.rotate_90_degrees = opt.rotate_90_degrees
         self.flip_vertically = opt.flip_vertically
         self.long_axis = opt.long_axis
+        self.quality_threhold = opt.quality_threshold
 
     def check_parameters(self):
         '''

@@ -549,7 +549,8 @@ def quality_check(source_array,
                   qc_classifier,
                   source_fn,
                   mask_fn,
-                  skip_edges):
+                  skip_edges,
+                  quality_threshold):
     '''
     Primary handler for post-inference quality checks. Primary goal is to
     determine which slices are in need of manual review. Two methods.
@@ -621,7 +622,7 @@ def quality_check(source_array,
                                       roundness,
                                       elongation]).reshape(1, -1)
             prediction = (qc_classifier.predict_proba(
-                feature_array)[:, 1] >= 0.93).astype(bool)
+                feature_array)[:, 1] >= quality_threshold).astype(bool)
             if prediction == False:
                 notes = 'Model Classified'
         except Exception as e:

@@ -125,7 +125,8 @@ def segment_file_structure_workflow(opt,
                         opt.mri_plane,
                         opt.rotate_90_degrees,
                         opt.flip_vertically,
-                        opt.long_axis)
+                        opt.long_axis,
+                        opt.quality_threshold)
                     quality_check = quality_check.append(quality_check_temp,
                                                          ignore_index=True)
                     print('Segmentation successful for the file: \n'
@@ -189,7 +190,8 @@ def segment_file_structure_workflow(opt,
                     opt.mri_plane,
                     opt.rotate_90_degrees,
                     opt.flip_vertically,
-                    opt.long_axis)
+                    opt.long_axis,
+                    opt.quality_threshold)
                 quality_check = quality_check.append(quality_check_temp,
                                                      ignore_index=True)
                 print('Segmentation successful for the file: \n'
@@ -254,7 +256,8 @@ def segment_file_structure_workflow(opt,
                 opt.mri_plane,
                 opt.rotate_90_degrees,
                 opt.flip_vertically,
-                opt.long_axis)
+                opt.long_axis,
+                opt.quality_threshold)
             print('Segmentation successful for the file: \n'
                   + str(source_fn),
                   file=sys.stderr)
@@ -299,7 +302,8 @@ def segment_image_workflow(source_fn,
                            mri_plane,
                            rotate_90_degrees,
                            flip_vertically,
-                           major_axis):
+                           major_axis,
+                           quality_threshold):
     '''
     Controls workflow for segmentation of a single image stack. Includes
     both segmentation and preprocessing
@@ -594,7 +598,8 @@ def segment_image_workflow(source_fn,
                                               qc_classifier,
                                               source_fn,
                                               mask_fn,
-                                              qc_skip_edges)
+                                              qc_skip_edges,
+                                              quality_threshold)
         quality_check_list = quality_check_list.append(file_quality_check_df,
                                                        ignore_index=True)
 
