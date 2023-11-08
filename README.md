@@ -99,7 +99,7 @@ This is an example of how to list things you need to use the software and how to
 
 To check that the program is working correctly:
 1. Navigate to the location the test dataest directory downloaded earlier was saved in a command line shell
-2. Look through the pre-generated results included in the download (demo_pre-generated)
+2. Look through the pre-generated results included in the download (test_dataset_pregenerated)
 3. Run segmentation on the clean test dataset
  ```sh
    python -m seg-for-4modalities.segment_brain --input_type dataset --input test_dataset
