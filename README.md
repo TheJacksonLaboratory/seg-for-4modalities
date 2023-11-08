@@ -98,14 +98,15 @@ This is an example of how to list things you need to use the software and how to
 ## Usage
 
 To check that the program is working correctly:
-1. Navigate to the location the test dataest directory downloaded earlier was saved in a command line shell
+1. Navigate to the location the test dataest directory downloaded earlier was saved in a command line shell. In that directory, there should be two subdirectories: test_dataset and test_dataset_pregenerated.
 2. Look through the pre-generated results included in the download (test_dataset_pregenerated)
 4. Run segmentation on the clean test dataset
  ```sh
    python -m seg-for-4modalities.segment_brain --input_type dataset --input test_dataset
 
    ```
-5. A shell script is included to remove segmentaiton files from the test dataset after processing to prepare for future iterations. 
+5. Check that all expected files were created in test_dataset. 
+6. A shell script is included to remove segmentation files from the test dataset after processing to prepare for future iterations. 
 
 _For more detailed information about installation, running the program, and detailed information about input parameters, please refer to the [Documentation](https://github.com/TheJacksonLaboratory/seg-for-4modalities/blob/main/user_guide_inference.pdf)_
 
