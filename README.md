@@ -77,9 +77,9 @@ This is an example of how to list things you need to use the software and how to
 
 1. Download the test data here, currently available on [Box](https://thejacksonlaboratory.box.com/s/doryp202qz1ar6800557p5t2d7w2nn6u)
 
-2. Create a conda environment with the appropriate python version. The software was built using python==3.8.8, but newer versions should cause limited issues. If using a ARM64 Mac, it is recommended to use python=3.10
+2. Create a conda environment with the appropriate python version. The software was built using python==3.8
    ```sh
-   conda create -y --name seg-for-4modalities python==3.8.8
+   conda create -y --name seg-for-4modalities python==3.8
    ```
 3. Activate the environment
    ```sh
