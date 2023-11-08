@@ -75,7 +75,7 @@ This is an example of how to list things you need to use the software and how to
 
 ### Installation
 
-1. Download the test data here, currently available on [Box](https://thejacksonlaboratory.box.com/s/nyt7pi1vjt6i8rkey8en6778cv01fkjq)
+1. Download the test data here, currently available on [Box](https://thejacksonlaboratory.box.com/s/doryp202qz1ar6800557p5t2d7w2nn6u)
 
 2. Create a conda environment with the appropriate python version. The software was built using python==3.8.8, but newer versions should cause limited issues.
    ```sh
@@ -95,7 +95,7 @@ This is an example of how to list things you need to use the software and how to
 
 
 <!-- USAGE EXAMPLES -->
-## Useage
+## Usage
 
 To check that the program is working correctly:
 1. Navigate to the location the test dataest directory downloaded earlier was saved in a command line shell
