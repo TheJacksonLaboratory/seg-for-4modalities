@@ -111,6 +111,10 @@ _For more detailed information about installation, running the program, and deta
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- LIMITATIONS-->
+## Known Issues
+
+1. Installation on Macs with ARM architecture CPUs using pip is challenging. Recommend using intel Mac, Window, or a Linux distribution.
 
 <!-- LICENSE -->
 ## License
