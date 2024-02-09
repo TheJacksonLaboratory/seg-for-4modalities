@@ -18,7 +18,7 @@
 <h3 align="center">Automatic Mouse Brain MRI Segmentation</h3>
 
   <p align="center">
-    Automatic segmentation for mouse MRI. Applicable to four modalities: anatomical, DTI, NODDI, rsfMRI.
+    Automatic segmentation for mouse MRI. Applicable to four modalities: anatomical, DTI, NODDI, rsfMRI. Associated with submission Frohock et al., Automated Artifact Removal and Segmentation of Mouse Brain Images Collected Using Multiple MRI Modalities
     <br />
     <a href="https://github.com/TheJacksonLaboratory/seg-for-4modalities/blob/main/user_guide_inference.pdf"><strong>Explore the docs »</strong></a>
     <br />
@@ -75,7 +75,7 @@ This is an example of how to list things you need to use the software and how to
 
 ### Installation
 
-1. Download the test data here, currently available on [Box](https://thejacksonlaboratory.box.com/s/doryp202qz1ar6800557p5t2d7w2nn6u)
+1. Download the test data here, currently available on [Box](https://thejacksonlaboratory.box.com/s/7zciw09qfl7nc5phnnmvn49um7d9rh9m)
 
 2. Create a conda environment with the appropriate python version. The software was built using python==3.8
    ```sh
@@ -116,7 +116,7 @@ _For more detailed information about installation, running the program, and deta
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
