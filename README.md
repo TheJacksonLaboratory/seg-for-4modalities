@@ -20,7 +20,7 @@
   <p align="center">
     Automatic segmentation for mouse MRI. Applicable to four modalities: anatomical, DTI, NODDI, rsfMRI. Associated with submission Frohock et al., Automated Artifact Removal and Segmentation of Mouse Brain Images Collected Using Multiple MRI Modalities
     <br />
-    <a href="https://github.com/TheJacksonLaboratory/seg-for-4modalities/blob/main/user_guide_inference.pdf"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/TheJacksonLaboratory/seg-for-4modalities/blob/inference_lightweight_package/user_guide_inference.pdf"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/TheJacksonLaboratory/seg-for-4modalities">View Demo</a>
