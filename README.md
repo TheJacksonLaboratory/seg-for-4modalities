@@ -114,7 +114,9 @@ _For more detailed information about installation, running the program, and deta
 <!-- LIMITATIONS-->
 ## Known Issues
 
-1. Installation on Macs with ARM architecture CPUs using pip is challenging. Recommend using intel Mac, Window, or a Linux distribution.
+1. Installation on Macs with ARM architecture CPUs using pip fails. Recommend using intel Mac, Window, or a Linux distribution.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- LICENSE -->
 ## License
