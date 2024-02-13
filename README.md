@@ -12,8 +12,6 @@
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
 [![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-
 
 <h3 align="center">Automatic Mouse Brain MRI Segmentation</h3>
 
