@@ -72,7 +72,7 @@ To get a local copy up and running follow these simple example steps.
 
 ### Installation
 
-1. Download the test data here, currently available on [Box](https://thejacksonlaboratory.box.com/s/7zciw09qfl7nc5phnnmvn49um7d9rh9m)
+1. Download and unzip the test data here, currently available on [Box](https://thejacksonlaboratory.box.com/s/7zciw09qfl7nc5phnnmvn49um7d9rh9m) 
 
 2. Create a conda environment with the appropriate python version. The software was built using python==3.8
    ```sh
