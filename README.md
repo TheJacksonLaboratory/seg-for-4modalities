@@ -84,7 +84,22 @@ To get a local copy up and running follow these simple example steps.
    ```sh
    conda activate seg-for-4modalities
    ```
-4. Install the segmentation tool
+4. Allow for scikit-learn installation as sklearn - required as of December 31st, 2023. To do so, set the environment variable SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL=True. The exact method to do so varies on the operating system you are using: \
+   \
+   For Windows CMD: 
+   ```js 
+   set SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL=True
+   ```  
+   For Windows Powershell: 
+   ```js 
+   set SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL "True"
+   ```  
+   On MacOS or Linux Terminal: 
+   ```js 
+   export SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL=True
+   ```
+
+5. Install the segmentation tool
    ```js
    pip install seg-for-4modalities
    ```
@@ -115,6 +130,7 @@ _For more detailed information about installation, running the program, and deta
 ## Known Issues
 
 1. Installation on Macs with ARM architecture CPUs using pip fails. Recommend using intel Mac, Window, or a Linux distribution.
+2. One or more dependencies have requirements referring to scikit-learn as sklearn. As of December 31, 2023, this is officially deprecated and causes installation to fail. As a workaround, it is possible to allow deprecated sklearn references to still install. To fix, set the environment variable: 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -149,7 +165,3 @@ Project Link: [https://github.com/TheJacksonLaboratory/seg-for-4modalities](http
 [issues-shield]: https://img.shields.io/github/issues/TheJacksonLaboratory/seg-for-4modalities.svg?style=for-the-badge
 [issues-url]: https://github.com/TheJacksonLaboratory/seg-for-4modalities/issues
 [license-shield]: https://img.shields.io/github/license/TheJacksonLaboratory/seg-for-4modalities.svg?style=for-the-badge
-[license-url]: https://github.com/TheJacksonLaboratory/seg-for-4modalities/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/linkedin_username
-[product-screenshot]: images/screenshot.png
